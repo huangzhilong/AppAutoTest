@@ -11,11 +11,15 @@ import android.text.style.ForegroundColorSpan;
 import com.hago.startup.bean.ApkInfo;
 import com.hago.startup.bean.ResultInfo;
 import com.hago.startup.bean.StartupInfo;
+import com.hago.startup.db.InsertResultTask;
+import com.hago.startup.db.MonitorInfo;
+import com.hago.startup.db.SearchResultTask;
 import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.OkHttpUtil;
 import com.hago.startup.util.Utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -179,6 +183,9 @@ public class StartupPresenter {
         info.mStartupData.startTime /= mResultList.size();
         ResultInfo resultInfo = new ResultInfo(mApkInfo, info);
         LogUtil.logI(TAG, "handlerResult: %s", resultInfo);
+        //插入数据库
+        InsertResultTask task = new InsertResultTask(resultInfo, mInsertCallback, mContext);
+        ExecutorsInstance.getInstance().executeRunnable(task);
     }
 
     public void release() {
@@ -189,4 +196,35 @@ public class StartupPresenter {
             mRealDisposable.dispose();
         }
     }
+
+    public void queryMoitorResult(HashMap<String, Object> searchMap) {
+        SearchResultTask task = new SearchResultTask(searchMap, mContext, mSearchCallback);
+        ExecutorsInstance.getInstance().executeRunnable(task);
+    }
+
+    //插入数据库回调
+    private ICallback<Integer> mInsertCallback = new ICallback<Integer>() {
+
+        @Override
+        public void onFailed(String msg) {
+            LogUtil.logI(TAG, "mInsertCallback onFailed: %s", msg);
+        }
+
+        @Override
+        public void onSuccess(Integer data) {
+            LogUtil.logI(TAG, "mInsertCallback onSuccess: %s", data);
+        }
+    };
+
+    private ICallback<List<MonitorInfo>> mSearchCallback = new ICallback<List<MonitorInfo>>() {
+        @Override
+        public void onFailed(String msg) {
+            LogUtil.logI(TAG, "mSearchCallback onFailed: %s", msg);
+        }
+
+        @Override
+        public void onSuccess(List<MonitorInfo> data) {
+            LogUtil.logI(TAG, "mInsertCallback onSuccess: %s", data);
+        }
+    };
 }

@@ -12,6 +12,8 @@ import com.hago.startup.receiver.AppInstallReceiver;
 import com.hago.startup.receiver.StartupTimeReceiver;
 import com.hago.startup.util.Utils;
 
+import java.util.HashMap;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, IStartupView {
 
     private static final String TAG = "MainActivity";

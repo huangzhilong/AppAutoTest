@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.hago.startup.ExecutorsInstance;
+import com.hago.startup.ICallback;
 import com.hago.startup.util.LogUtil;
 
 import java.io.BufferedReader;
@@ -20,7 +21,7 @@ public abstract class BaseCmd<T> implements Runnable {
     protected String mTag;
 
     //此回调在主线程。需要自己操作结果时setCmdCallback
-    private ICmdCallback<T> mCmdCallback = new ICmdCallback<T>() {
+    private ICallback<T> mCmdCallback = new ICallback<T>() {
         @Override
         public void onFailed(String msg) {
             LogUtil.logI(mTag, "mCmdCallback failed: " + msg);
@@ -32,7 +33,7 @@ public abstract class BaseCmd<T> implements Runnable {
         }
     };
 
-    public void setCmdCallback(@NonNull ICmdCallback<T> cmdCallback) {
+    public void setCmdCallback(@NonNull ICallback<T> cmdCallback) {
         mCmdCallback = cmdCallback;
     }
 

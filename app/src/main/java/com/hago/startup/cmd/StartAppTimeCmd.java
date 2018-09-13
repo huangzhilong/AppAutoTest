@@ -43,7 +43,7 @@ public class StartAppTimeCmd extends BaseCmd<StartupTime> {
             String num = getNumStr(index + mTotalTimeTag.length(), data);
             startupTime.totalTime = Utils.safeParseLong(num);
         } else {
-            LogUtil.logI(mTag, "no found thisTime");
+            LogUtil.logI(mTag, "no found totalTime");
         }
         //获取WaitTime
         index = data.indexOf(mWaitTimeTag);
@@ -51,7 +51,7 @@ public class StartAppTimeCmd extends BaseCmd<StartupTime> {
             String num = getNumStr(index + mWaitTimeTag.length(), data);
             startupTime.waitTime = Utils.safeParseLong(num);
         } else {
-            LogUtil.logI(mTag, "no found thisTime");
+            LogUtil.logI(mTag, "no found waitTime");
         }
         return startupTime;
     }

@@ -11,7 +11,6 @@ import android.support.v4.content.FileProvider;
 import com.hago.startup.bean.StartupData;
 import com.hago.startup.bean.StartupInfo;
 import com.hago.startup.bean.StartupTime;
-import com.hago.startup.cmd.ICmdCallback;
 import com.hago.startup.cmd.StartAppTimeCmd;
 import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.Utils;
@@ -209,7 +208,7 @@ public enum NotificationCenter {
     }
 
 
-    private ICmdCallback<StartupTime> mStartupTimeCmdCallback = new ICmdCallback<StartupTime>() {
+    private ICallback<StartupTime> mStartupTimeCmdCallback = new ICallback<StartupTime>() {
         @Override
         public void onFailed(String msg) {
             LogUtil.logI(TAG, "mStartupTimeCmdCallback onFailed " + msg);

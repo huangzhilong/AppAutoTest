@@ -1,10 +1,10 @@
-package com.hago.startup.cmd;
+package com.hago.startup;
 
 /**
  * Created by huangzhilong on 18/9/6.
  */
 
-public interface ICmdCallback<T> {
+public interface ICallback<T> {
 
     void onFailed(String msg);
 
