@@ -16,22 +16,31 @@ import com.hago.startup.net.OkHttpUtil;
 import com.hago.startup.receiver.AppInstallReceiver;
 import com.hago.startup.receiver.StartupTimeReceiver;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.MaybeSource;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private static final String TAG = "MainActivity";
     private TextView tvStart;
     private TextView tvState;
     private boolean accessibility = false;
     private StartupTimeReceiver mStartupTimeReceiver;
     private AppInstallReceiver mAppInstallReceiver;
-    private Disposable mDisposable;
+    private Disposable mStartDisposable;
+    private Disposable mRealDisposable;
     private String stateTxt = "辅助功能状态: %s";
+
+    private List<StartupInfo> mResultList = new ArrayList<>(Constant.START_COUNT);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +75,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvState.setText(spannableString);
     }
 
+    //卸载－>下载－>安装 －> 启动第一次
     private void startMonitor() {
-        //若装了hago先卸载
-        mDisposable = NotificationCenter.INSTANCE.unInstall(MainActivity.this)
+        mStartDisposable = NotificationCenter.INSTANCE.unInstall(MainActivity.this)
                 .flatMap(new Function<Boolean, MaybeSource<String>>() {
                     @Override
                     public MaybeSource<String> apply(Boolean aBoolean) throws Exception {
@@ -91,41 +100,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .flatMap(new Function<Boolean, MaybeSource<StartupInfo>>() {
                     @Override
                     public MaybeSource<StartupInfo> apply(Boolean aBoolean) throws Exception {
-                        //先启动安装的第一次
+                        //先启动安装的第一次, 第一次结果不计算
                         return NotificationCenter.INSTANCE.getAppInfo();
                     }
-                }).delay(2, TimeUnit.SECONDS) //这个延时很有必要，不然getAppInfo的emitter大概率在doFinally会被置null
-                .flatMap(new Function<StartupInfo, MaybeSource<StartupInfo>>() {
-                    @Override
-                    public MaybeSource<StartupInfo> apply(StartupInfo startupInfo) throws Exception {
-                        //不计算第一次启动结果
-                        LogUtil.logI("MainActivity", "first time startMonitor StartupInfo: " + startupInfo);
-                        //启动获取启动结果
-                        return NotificationCenter.INSTANCE.getAppInfo();
-                    }
-                }).subscribe(new Consumer<StartupInfo>() {
+                }).delay(2, TimeUnit.SECONDS)
+                .subscribe(new Consumer<StartupInfo>() {
                     @Override
                     public void accept(StartupInfo startupInfo) throws Exception {
-                        LogUtil.logI("MainActivity", "startMonitor StartupInfo: " + startupInfo);
-                        //postNextMonitorRunnable();
+                        LogUtil.logI(TAG, "realMonitor get first startupInfo: %s", startupInfo);
+                        mResultList.clear();
+                        realMonitor();
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
-                        LogUtil.logI("MainActivity", "startMonitor throwable: " + throwable);
-                        //postNextMonitorRunnable();
+                        LogUtil.logI(TAG, "startMonitor failed throwable: " + throwable);
                     }
                 });
     }
 
-    private void postNextMonitorRunnable() {
-        LogUtil.logI("MainActivity", "postNextMonitorRunnable");
-        ExecutorsInstance.getInstance().postToMainThreadDelay(new Runnable() {
-            @Override
-            public void run() {
-                startMonitor();
-            }
-        }, Constant.START_MONITOR_INTERVAL);
+    private void realMonitor() {
+        mRealDisposable = NotificationCenter.INSTANCE.getAppInfo()
+                .delay(2, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<StartupInfo>() {
+                    @Override
+                    public void accept(@NonNull StartupInfo startupInfo) throws Exception {
+                        mResultList.add(startupInfo);
+                        LogUtil.logI(TAG, "realMonitor size: %s  data: %s", mResultList.size(), startupInfo);
+                        if (mResultList.size() < Constant.START_COUNT) {
+                            realMonitor();
+                        } else {
+                            LogUtil.logI(TAG, "monitor success completed!");
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        LogUtil.logI(TAG, "realMonitor size: %s  throwable: %s", mResultList.size(), throwable);
+                        if (mResultList.size() < Constant.START_COUNT) {
+                            realMonitor();
+                        }
+                    }
+                });
     }
 
     private void registerService() {
@@ -147,8 +164,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         unregisterReceiver(mAppInstallReceiver);
         unregisterReceiver(mStartupTimeReceiver);
-        if (mDisposable != null && !mDisposable.isDisposed()) {
-            mDisposable.isDisposed();
+        if (mStartDisposable != null && !mStartDisposable.isDisposed()) {
+            mStartDisposable.isDisposed();
+        }
+        if (mRealDisposable != null && !mRealDisposable.isDisposed()) {
+            mRealDisposable.dispose();
         }
     }
 

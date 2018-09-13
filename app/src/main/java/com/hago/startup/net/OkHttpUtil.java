@@ -3,7 +3,6 @@ package com.hago.startup.net;
 import android.text.TextUtils;
 
 import com.hago.startup.Constant;
-import com.hago.startup.FileUtil;
 import com.hago.startup.LogUtil;
 import com.hago.startup.Utils;
 import com.hago.startup.bean.ApkInfo;
@@ -128,7 +127,7 @@ public class OkHttpUtil {
                 long total = response.body().contentLength();
                 LogUtil.logD(TAG, "download apk total: %s", total);
                 FileOutputStream outputStream = null;
-                String savePath = FileUtil.getExternalDir();
+                String savePath = Utils.getExternalDir();
                 int progress = 0;
                 try {
                     is = response.body().byteStream();
