@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">HagoMonitor</string>
+    <string name="desc">请开启自动安装功能，便于自动化安装测试</string>
+</resources>
