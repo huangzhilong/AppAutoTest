@@ -1,4 +1,4 @@
-package com.hago.startup;
+package com.hago.startup.util;
 
 import android.util.Log;
 

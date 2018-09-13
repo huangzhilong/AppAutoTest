@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 
 import com.hago.startup.Constant;
-import com.hago.startup.LogUtil;
+import com.hago.startup.util.LogUtil;
 import com.hago.startup.NotificationCenter;
 
 /**

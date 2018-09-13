@@ -1,10 +1,8 @@
-package com.hago.startup.net;
+package com.hago.startup.util;
 
 import android.text.TextUtils;
 
 import com.hago.startup.Constant;
-import com.hago.startup.LogUtil;
-import com.hago.startup.Utils;
 import com.hago.startup.bean.ApkInfo;
 
 import java.io.File;
@@ -39,7 +37,7 @@ public class OkHttpUtil {
 
     private static final OkHttpUtil mOkHttpUtil = new OkHttpUtil();
     private MaybeEmitter<String> mUrlEmitter;
-    private MaybeEmitter<String> mApkEmitter;
+    private MaybeEmitter<ApkInfo> mApkEmitter;
 
     public static OkHttpUtil getInstance() {
         return mOkHttpUtil;
@@ -125,6 +123,7 @@ public class OkHttpUtil {
                 byte[] buf = new byte[2048];
                 int len;
                 long total = response.body().contentLength();
+                apkInfo.size = total;
                 LogUtil.logD(TAG, "download apk total: %s", total);
                 FileOutputStream outputStream = null;
                 String savePath = Utils.getExternalDir();
@@ -144,7 +143,8 @@ public class OkHttpUtil {
                         }
                     }
                     outputStream.flush();
-                    Utils.safeEmitterSuccess(mApkEmitter, file.getPath());
+                    apkInfo.filePath = file.getPath();
+                    Utils.safeEmitterSuccess(mApkEmitter, apkInfo);
                 } catch (Exception e) {
                     LogUtil.logE(TAG, "downloadApk exception", e);
                     Utils.safeEmitterError(mApkEmitter, e);
@@ -179,11 +179,11 @@ public class OkHttpUtil {
         });
     }
 
-    public Maybe<String> startDownloadApk(final String path) {
+    public Maybe<ApkInfo> startDownloadApk(final String path) {
         LogUtil.logI(TAG, "start getDownloadApk");
-        return Maybe.create(new MaybeOnSubscribe<String>() {
+        return Maybe.create(new MaybeOnSubscribe<ApkInfo>() {
             @Override
-            public void subscribe(MaybeEmitter<String> e) throws Exception {
+            public void subscribe(MaybeEmitter<ApkInfo> e) throws Exception {
                 mApkEmitter = e;
                 downloadApk(path);
             }

@@ -1,8 +1,7 @@
-package com.hago.startup.net;
+package com.hago.startup.util;
 
 import android.text.TextUtils;
 
-import com.hago.startup.LogUtil;
 import com.hago.startup.bean.ApkInfo;
 
 /**

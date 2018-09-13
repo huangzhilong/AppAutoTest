@@ -1,15 +1,15 @@
-package com.hago.startup;
+package com.hago.startup.util;
 
 import android.Manifest;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Environment;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.view.accessibility.AccessibilityManager;
+
+import com.hago.startup.Constant;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,14 +74,6 @@ public class Utils {
         return false;
     }
 
-    /**
-     * 跳转到辅助功能开启页面
-     * @param context
-     */
-    public static void openAccessibilityService(Context context) {
-        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-        context.startActivity(intent);
-    }
 
     public static String getExternalDir() throws IOException {
         File file = new File(Environment.getExternalStorageDirectory().getPath() + File.separator + Constant.MONITOR_PACKAGENAME);

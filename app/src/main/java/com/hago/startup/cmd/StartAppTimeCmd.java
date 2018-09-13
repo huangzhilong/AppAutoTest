@@ -1,10 +1,10 @@
-package com.hago.startup.cmd.list;
+package com.hago.startup.cmd;
 
 import android.text.TextUtils;
 
 import com.hago.startup.Constant;
-import com.hago.startup.LogUtil;
-import com.hago.startup.Utils;
+import com.hago.startup.util.LogUtil;
+import com.hago.startup.util.Utils;
 import com.hago.startup.bean.StartupTime;
 import com.hago.startup.cmd.BaseCmd;
 

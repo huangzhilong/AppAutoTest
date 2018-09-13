@@ -4,7 +4,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.hago.startup.ExecutorsInstance;
-import com.hago.startup.LogUtil;
+import com.hago.startup.util.LogUtil;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

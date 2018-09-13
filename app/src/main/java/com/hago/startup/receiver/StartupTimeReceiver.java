@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.hago.startup.LogUtil;
+import com.hago.startup.util.LogUtil;
 import com.hago.startup.NotificationCenter;
 import com.hago.startup.bean.StartupData;
 
