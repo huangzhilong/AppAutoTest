@@ -175,7 +175,7 @@ public enum NotificationCenter {
     private void startAppCmd() {
         StartAppTimeCmd startAppCmd = new StartAppTimeCmd();
         startAppCmd.setCmdCallback(mStartupTimeCmdCallback);
-        ExecutorsInstance.getInstance().executeRunnable(startAppCmd);
+        MonitorTaskInstance.getInstance().executeRunnable(startAppCmd);
     }
 
     private void startUnInstall(Context context) {

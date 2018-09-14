@@ -2,7 +2,7 @@ package com.hago.startup.db;
 
 import android.content.Context;
 
-import com.hago.startup.ExecutorsInstance;
+import com.hago.startup.MonitorTaskInstance;
 import com.hago.startup.ICallback;
 
 /**
@@ -21,7 +21,7 @@ public abstract class AbsDbTask<T> implements Runnable {
 
     //回调应该回到主线程
     protected void handleSuccess(final T data) {
-        ExecutorsInstance.getInstance().postToMainThread(new Runnable() {
+        MonitorTaskInstance.getInstance().postToMainThread(new Runnable() {
             @Override
             public void run() {
                 if (mCallback != null) {
@@ -32,7 +32,7 @@ public abstract class AbsDbTask<T> implements Runnable {
     }
 
     protected void handleFailed(final Exception e) {
-        ExecutorsInstance.getInstance().postToMainThread(new Runnable() {
+        MonitorTaskInstance.getInstance().postToMainThread(new Runnable() {
             @Override
             public void run() {
                 if (mCallback != null) {

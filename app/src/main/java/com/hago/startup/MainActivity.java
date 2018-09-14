@@ -12,8 +12,6 @@ import com.hago.startup.receiver.AppInstallReceiver;
 import com.hago.startup.receiver.StartupTimeReceiver;
 import com.hago.startup.util.Utils;
 
-import java.util.HashMap;
-
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, IStartupView {
 
     private static final String TAG = "MainActivity";
@@ -52,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void updateStepView(final String text) {
-        ExecutorsInstance.getInstance().postToMainThread(new Runnable() {
+        MonitorTaskInstance.getInstance().postToMainThread(new Runnable() {
             @Override
             public void run() {
                 tvStep.setText(text);

@@ -10,18 +10,18 @@ import java.util.concurrent.Executors;
  * Created by huangzhilong on 18/9/6.
  */
 
-public class ExecutorsInstance {
+public class MonitorTaskInstance {
 
-    private static final ExecutorsInstance ourInstance = new ExecutorsInstance();
+    private static final MonitorTaskInstance ourInstance = new MonitorTaskInstance();
 
-    public static ExecutorsInstance getInstance() {
+    public static MonitorTaskInstance getInstance() {
         return ourInstance;
     }
 
     //只需要一个线程就好啦
     private Executor mExecutor;
 
-    private ExecutorsInstance() {
+    private MonitorTaskInstance() {
         mExecutor = Executors.newSingleThreadExecutor();
     }
 

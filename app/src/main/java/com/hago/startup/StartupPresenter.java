@@ -185,7 +185,7 @@ public class StartupPresenter {
         LogUtil.logI(TAG, "handlerResult: %s", resultInfo);
         //插入数据库
         InsertResultTask task = new InsertResultTask(resultInfo, mInsertCallback, mContext);
-        ExecutorsInstance.getInstance().executeRunnable(task);
+        MonitorTaskInstance.getInstance().executeRunnable(task);
     }
 
     public void release() {
@@ -199,7 +199,7 @@ public class StartupPresenter {
 
     public void queryMoitorResult(HashMap<String, Object> searchMap) {
         SearchResultTask task = new SearchResultTask(searchMap, mContext, mSearchCallback);
-        ExecutorsInstance.getInstance().executeRunnable(task);
+        MonitorTaskInstance.getInstance().executeRunnable(task);
     }
 
     //插入数据库回调

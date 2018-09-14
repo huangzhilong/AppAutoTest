@@ -74,7 +74,6 @@ public class OkHttpUtil {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String body = response.body().string();
-                LogUtil.logI(TAG, "getLastBuildUrl onResponse: " + body);
                 String result;
                 if (!TextUtils.isEmpty(body)) {
                     int index = body.lastIndexOf(Constant.MATCHER_LAST_BUILD_TAG);

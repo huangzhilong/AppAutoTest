@@ -3,9 +3,8 @@ package com.hago.startup.cmd;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.hago.startup.ExecutorsInstance;
+import com.hago.startup.MonitorTaskInstance;
 import com.hago.startup.ICallback;
-import com.hago.startup.util.LogUtil;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -20,18 +19,7 @@ public abstract class BaseCmd<T> implements Runnable {
 
     protected String mTag;
 
-    //此回调在主线程。需要自己操作结果时setCmdCallback
-    private ICallback<T> mCmdCallback = new ICallback<T>() {
-        @Override
-        public void onFailed(String msg) {
-            LogUtil.logI(mTag, "mCmdCallback failed: " + msg);
-        }
-
-        @Override
-        public void onSuccess(T data) {
-            LogUtil.logI(mTag, "mCmdCallback onSuccess: " + data);
-        }
-    };
+    private ICallback<T> mCmdCallback;
 
     public void setCmdCallback(@NonNull ICallback<T> cmdCallback) {
         mCmdCallback = cmdCallback;
@@ -39,13 +27,13 @@ public abstract class BaseCmd<T> implements Runnable {
 
     private T result;
 
-
     public BaseCmd() {
         mTag = getClass().getSimpleName();
     }
 
     /**
      * 结果处理
+     *
      * @param data
      * @return
      */
@@ -93,20 +81,24 @@ public abstract class BaseCmd<T> implements Runnable {
     }
 
     private void handlerError(final String error) {
-        ExecutorsInstance.getInstance().postToMainThread(new Runnable() {
+        MonitorTaskInstance.getInstance().postToMainThread(new Runnable() {
             @Override
             public void run() {
-                mCmdCallback.onFailed(error);
+                if (mCmdCallback != null) {
+                    mCmdCallback.onFailed(error);
+                }
             }
         });
     }
 
     private void handlerSuccess(String data) {
         result = parseResult(data);
-        ExecutorsInstance.getInstance().postToMainThread(new Runnable() {
+        MonitorTaskInstance.getInstance().postToMainThread(new Runnable() {
             @Override
             public void run() {
-                mCmdCallback.onSuccess(result);
+                if (mCmdCallback != null) {
+                    mCmdCallback.onSuccess(result);
+                }
             }
         });
     }
