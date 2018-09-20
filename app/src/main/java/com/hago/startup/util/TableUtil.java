@@ -3,6 +3,8 @@ package com.hago.startup.util;
 import com.hago.startup.db.MonitorInfo;
 
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -73,12 +75,19 @@ public class TableUtil {
                 try {
                     Field field = info.getClass().getField(mFieldsOrder[j]);
                     stringBuffer.append(TABLE_TD_START);
-                    stringBuffer.append(field.get(info));
+                    if (mFieldsOrder[j].equals("timestamp") && field.get(info) instanceof Long) {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        stringBuffer.append(dateFormat.format(new Date((Long) field.get(info))));
+                    } else {
+                        stringBuffer.append(field.get(info));
+                    }
                     stringBuffer.append(TABLE_TD_END);
                 } catch (NoSuchFieldException e) {
                     LogUtil.logI(TAG, "getField NoSuchField: %s", mFieldsOrder[j]);
                 } catch (IllegalAccessException e) {
                     LogUtil.logI(TAG, "getField IllegalAccess: %s", mFieldsOrder[j]);
+                } catch (Exception e) {
+                    LogUtil.logI(TAG, "getField Exception: %s  ex: %s", mFieldsOrder[j], e);
                 }
             }
             stringBuffer.append(TABLE_TR_END);
