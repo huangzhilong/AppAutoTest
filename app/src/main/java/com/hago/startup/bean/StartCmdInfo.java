@@ -4,7 +4,7 @@ package com.hago.startup.bean;
  * Created by huangzhilong on 18/9/6.
  */
 
-public class StartupTime {
+public class StartCmdInfo {
 
     public long thisTime;
 
@@ -12,7 +12,7 @@ public class StartupTime {
 
     public long waitTime;
 
-    public StartupTime() {
+    public StartCmdInfo() {
         thisTime = 0;
         totalTime = 0;
         waitTime = 0;
@@ -20,7 +20,7 @@ public class StartupTime {
 
     @Override
     public String toString() {
-        return "StartupTime{" +
+        return "StartCmdInfo{" +
                 "thisTime=" + thisTime +
                 ", totalTime=" + totalTime +
                 ", waitTime=" + waitTime +

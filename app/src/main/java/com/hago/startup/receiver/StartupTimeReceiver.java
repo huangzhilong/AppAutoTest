@@ -6,7 +6,7 @@ import android.content.Intent;
 
 import com.hago.startup.util.LogUtil;
 import com.hago.startup.NotificationCenter;
-import com.hago.startup.bean.StartupData;
+import com.hago.startup.bean.StartAppInfo;
 
 /**
  * Created by huangzhilong on 18/9/7.
@@ -23,11 +23,11 @@ public class StartupTimeReceiver extends BroadcastReceiver {
         if (ACTION.equals(intent.getAction())) {
             long startTime = intent.getLongExtra("startupTime", 0);
             int memory = intent.getIntExtra("startupMemory", 0);
-            StartupData startupData = new StartupData();
-            startupData.startTime = startTime;
-            startupData.startupMemory = memory;
-            LogUtil.logI(TAG, "startupData: %s", startupData);
-            NotificationCenter.INSTANCE.emitterStartData(startupData);
+            StartAppInfo startAppInfo = new StartAppInfo();
+            startAppInfo.startTime = startTime;
+            startAppInfo.startupMemory = memory;
+            LogUtil.logI(TAG, "startupData: %s", startAppInfo);
+            NotificationCenter.INSTANCE.emitterStartData(startAppInfo);
         }
     }
 }

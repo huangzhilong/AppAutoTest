@@ -170,17 +170,17 @@ public class StartupPresenter {
         mView.updateStepView(String.format(stepTxt, "结果处理...."));
         StartupInfo info = mResultList.get(0);
         for (int i = 1; i < mResultList.size(); i++) {
-            info.mStartupTime.totalTime += mResultList.get(i).mStartupTime.totalTime;
-            info.mStartupTime.waitTime += mResultList.get(i).mStartupTime.waitTime;
-            info.mStartupTime.thisTime += mResultList.get(i).mStartupTime.thisTime;
-            info.mStartupData.startupMemory += mResultList.get(i).mStartupData.startupMemory;
-            info.mStartupData.startTime += mResultList.get(i).mStartupData.startTime;
+            info.mStartCmdInfo.totalTime += mResultList.get(i).mStartCmdInfo.totalTime;
+            info.mStartCmdInfo.waitTime += mResultList.get(i).mStartCmdInfo.waitTime;
+            info.mStartCmdInfo.thisTime += mResultList.get(i).mStartCmdInfo.thisTime;
+            info.mStartAppInfo.startupMemory += mResultList.get(i).mStartAppInfo.startupMemory;
+            info.mStartAppInfo.startTime += mResultList.get(i).mStartAppInfo.startTime;
         }
-        info.mStartupTime.totalTime /= mResultList.size();
-        info.mStartupTime.waitTime /= mResultList.size();
-        info.mStartupTime.thisTime /= mResultList.size();
-        info.mStartupData.startupMemory /= mResultList.size();
-        info.mStartupData.startTime /= mResultList.size();
+        info.mStartCmdInfo.totalTime /= mResultList.size();
+        info.mStartCmdInfo.waitTime /= mResultList.size();
+        info.mStartCmdInfo.thisTime /= mResultList.size();
+        info.mStartAppInfo.startupMemory /= mResultList.size();
+        info.mStartAppInfo.startTime /= mResultList.size();
         ResultInfo resultInfo = new ResultInfo(mApkInfo, info);
         LogUtil.logI(TAG, "handlerResult: %s", resultInfo);
         //插入数据库

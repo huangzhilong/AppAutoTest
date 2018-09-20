@@ -5,7 +5,7 @@ package com.hago.startup.bean;
  * hiyo app通过广播返回的值
  */
 
-public class StartupData {
+public class StartAppInfo {
 
     //app自己计算的时间
     public long startTime;
@@ -15,7 +15,7 @@ public class StartupData {
 
     @Override
     public String toString() {
-        return "StartupData{" +
+        return "StartAppInfo{" +
                 "startTime=" + startTime +
                 ", startupMemory=" + startupMemory +
                 '}';

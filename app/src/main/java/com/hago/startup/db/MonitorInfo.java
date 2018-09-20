@@ -60,11 +60,11 @@ public class MonitorInfo {
         branch = resultInfo.mApkInfo.branch;
         version = resultInfo.mApkInfo.version;
         size = resultInfo.mApkInfo.size;
-        thisTime = resultInfo.mStartupInfo.mStartupTime.thisTime;
-        totalTime = resultInfo.mStartupInfo.mStartupTime.totalTime;
-        waitTime = resultInfo.mStartupInfo.mStartupTime.waitTime;
-        startTime = resultInfo.mStartupInfo.mStartupData.startTime;
-        startupMemory = resultInfo.mStartupInfo.mStartupData.startupMemory;
+        thisTime = resultInfo.mStartupInfo.mStartCmdInfo.thisTime;
+        totalTime = resultInfo.mStartupInfo.mStartCmdInfo.totalTime;
+        waitTime = resultInfo.mStartupInfo.mStartCmdInfo.waitTime;
+        startTime = resultInfo.mStartupInfo.mStartAppInfo.startTime;
+        startupMemory = resultInfo.mStartupInfo.mStartAppInfo.startupMemory;
         timestamp = System.currentTimeMillis();
     }
 

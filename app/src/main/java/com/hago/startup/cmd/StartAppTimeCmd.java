@@ -3,16 +3,15 @@ package com.hago.startup.cmd;
 import android.text.TextUtils;
 
 import com.hago.startup.Constant;
+import com.hago.startup.bean.StartCmdInfo;
 import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.Utils;
-import com.hago.startup.bean.StartupTime;
-import com.hago.startup.cmd.BaseCmd;
 
 /**
  * Created by huangzhilong on 18/9/6.
  */
 
-public class StartAppTimeCmd extends BaseCmd<StartupTime> {
+public class StartAppTimeCmd extends BaseCmd<StartCmdInfo> {
 
     private String mThisTimeTag = "ThisTime: ";
     private String mTotalTimeTag = "TotalTime: ";
@@ -23,17 +22,17 @@ public class StartAppTimeCmd extends BaseCmd<StartupTime> {
     }
 
     @Override
-    public StartupTime parseResult(String data) {
+    public StartCmdInfo parseResult(String data) {
         LogUtil.logI(mTag, "parseResult data: " + data);
         if (TextUtils.isEmpty(data)) {
             return null;
         }
-        StartupTime startupTime = new StartupTime();
+        StartCmdInfo startCmdInfo = new StartCmdInfo();
         //获取thisTime
         int index = data.indexOf(mThisTimeTag);
         if (index > 0) {
             String num = getNumStr(index + mThisTimeTag.length(), data);
-            startupTime.thisTime = Utils.safeParseLong(num);
+            startCmdInfo.thisTime = Utils.safeParseLong(num);
         } else {
             LogUtil.logI(mTag, "no found thisTime");
         }
@@ -41,7 +40,7 @@ public class StartAppTimeCmd extends BaseCmd<StartupTime> {
         index = data.indexOf(mTotalTimeTag);
         if (index > 0) {
             String num = getNumStr(index + mTotalTimeTag.length(), data);
-            startupTime.totalTime = Utils.safeParseLong(num);
+            startCmdInfo.totalTime = Utils.safeParseLong(num);
         } else {
             LogUtil.logI(mTag, "no found totalTime");
         }
@@ -49,11 +48,11 @@ public class StartAppTimeCmd extends BaseCmd<StartupTime> {
         index = data.indexOf(mWaitTimeTag);
         if (index > 0) {
             String num = getNumStr(index + mWaitTimeTag.length(), data);
-            startupTime.waitTime = Utils.safeParseLong(num);
+            startCmdInfo.waitTime = Utils.safeParseLong(num);
         } else {
             LogUtil.logI(mTag, "no found waitTime");
         }
-        return startupTime;
+        return startCmdInfo;
     }
 
     private String getNumStr(int index, String data) {

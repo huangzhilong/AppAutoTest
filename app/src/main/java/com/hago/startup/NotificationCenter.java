@@ -8,9 +8,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.v4.content.FileProvider;
 
-import com.hago.startup.bean.StartupData;
+import com.hago.startup.bean.StartAppInfo;
+import com.hago.startup.bean.StartCmdInfo;
 import com.hago.startup.bean.StartupInfo;
-import com.hago.startup.bean.StartupTime;
 import com.hago.startup.cmd.StartAppTimeCmd;
 import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.Utils;
@@ -35,9 +35,9 @@ public enum NotificationCenter {
 
     private static final String TAG = "NotificationCenter";
 
-    private MaybeEmitter<StartupData> mStartupDataMaybeEmitter;
+    private MaybeEmitter<StartAppInfo> mStartupDataMaybeEmitter;
 
-    private MaybeEmitter<StartupTime> mStartupTimeMaybeEmitter;
+    private MaybeEmitter<StartCmdInfo> mStartupTimeMaybeEmitter;
 
     private MaybeEmitter<Boolean> mInstallMaybeEmitter;
 
@@ -52,12 +52,12 @@ public enum NotificationCenter {
         return Maybe.zip(
                 getAppStartInfo(),
                 getAppStartTime(),
-                new BiFunction<StartupData, StartupTime, StartupInfo>() {
+                new BiFunction<StartAppInfo, StartCmdInfo, StartupInfo>() {
                     @Override
-                    public StartupInfo apply(StartupData startupData, StartupTime startupTime) throws Exception {
+                    public StartupInfo apply(StartAppInfo startupData, StartCmdInfo startupTime) throws Exception {
                         StartupInfo startupInfo = new StartupInfo();
-                        startupInfo.mStartupData = startupData;
-                        startupInfo.mStartupTime = startupTime;
+                        startupInfo.mStartAppInfo = startupData;
+                        startupInfo.mStartCmdInfo = startupTime;
                         return startupInfo;
                     }
                 }
@@ -107,10 +107,10 @@ public enum NotificationCenter {
         });
     }
 
-    private Maybe<StartupData> getAppStartInfo() {
-        return Maybe.create(new MaybeOnSubscribe<StartupData>() {
+    private Maybe<StartAppInfo> getAppStartInfo() {
+        return Maybe.create(new MaybeOnSubscribe<StartAppInfo>() {
             @Override
-            public void subscribe(MaybeEmitter<StartupData> e) throws Exception {
+            public void subscribe(MaybeEmitter<StartAppInfo> e) throws Exception {
                 mStartupDataMaybeEmitter = e;
             }
         }).doFinally(new Action() {
@@ -121,10 +121,10 @@ public enum NotificationCenter {
         });
     }
 
-    private Maybe<StartupTime> getAppStartTime() {
-        return Maybe.create(new MaybeOnSubscribe<StartupTime>() {
+    private Maybe<StartCmdInfo> getAppStartTime() {
+        return Maybe.create(new MaybeOnSubscribe<StartCmdInfo>() {
             @Override
-            public void subscribe(MaybeEmitter<StartupTime> e) throws Exception {
+            public void subscribe(MaybeEmitter<StartCmdInfo> e) throws Exception {
                 mStartupTimeMaybeEmitter = e;
                 startAppCmd();
             }
@@ -140,11 +140,11 @@ public enum NotificationCenter {
         Utils.safeEmitterSuccess(mInstallMaybeEmitter, true);
     }
 
-    public void emitterStartData(StartupData startupData) {
+    public void emitterStartData(StartAppInfo startupData) {
         Utils.safeEmitterSuccess(mStartupDataMaybeEmitter, startupData);
     }
 
-    public void emitterStartTime(StartupTime startupTime) {
+    public void emitterStartTime(StartCmdInfo startupTime) {
         Utils.safeEmitterSuccess(mStartupTimeMaybeEmitter, startupTime);
     }
 
@@ -208,14 +208,14 @@ public enum NotificationCenter {
     }
 
 
-    private ICallback<StartupTime> mStartupTimeCmdCallback = new ICallback<StartupTime>() {
+    private ICallback<StartCmdInfo> mStartupTimeCmdCallback = new ICallback<StartCmdInfo>() {
         @Override
         public void onFailed(String msg) {
             LogUtil.logI(TAG, "mStartupTimeCmdCallback onFailed " + msg);
         }
 
         @Override
-        public void onSuccess(StartupTime data) {
+        public void onSuccess(StartCmdInfo data) {
             LogUtil.logI(TAG, "mStartupTimeCmdCallback success " + data);
             emitterStartTime(data);
         }
