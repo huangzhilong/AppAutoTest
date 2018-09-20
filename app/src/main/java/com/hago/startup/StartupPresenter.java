@@ -125,7 +125,6 @@ public class StartupPresenter {
                     @Override
                     public void accept(StartupInfo startupInfo) throws Exception {
                         LogUtil.logI(TAG, "realMonitor get first startupInfo: %s", startupInfo);
-                        mResultList.clear();
                         realMonitor();
                     }
                 }, new Consumer<Throwable>() {
@@ -168,6 +167,7 @@ public class StartupPresenter {
 
     //取平均
     private void handlerResult() {
+        mView.updateStepView(String.format(stepTxt, "结果处理...."));
         StartupInfo info = mResultList.get(0);
         for (int i = 1; i < mResultList.size(); i++) {
             info.mStartupTime.totalTime += mResultList.get(i).mStartupTime.totalTime;
@@ -208,11 +208,13 @@ public class StartupPresenter {
         @Override
         public void onFailed(String msg) {
             LogUtil.logI(TAG, "mInsertCallback onFailed: %s", msg);
+            mView.updateStepView(String.format(stepTxt, "存储数据库失败"));
         }
 
         @Override
         public void onSuccess(Integer data) {
             LogUtil.logI(TAG, "mInsertCallback onSuccess: %s", data);
+            mView.updateStepView(String.format(stepTxt, "存储数据库成功"));
         }
     };
 

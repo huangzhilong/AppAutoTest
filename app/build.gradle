@@ -31,4 +31,6 @@ dependencies {
 
     compile "com.j256.ormlite:ormlite-core:4.48"
     compile "com.j256.ormlite:ormlite-android:4.48"
+    compile 'com.sun.mail:android-mail:1.6.0'
+    compile 'com.sun.mail:android-activation:1.6.0'
 }

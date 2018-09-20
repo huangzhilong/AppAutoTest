@@ -38,6 +38,9 @@ public class MonitorInfo {
     @DatabaseField(columnName = "startupMemory")
     public int startupMemory; //app启动10s后取次内存
 
+    @DatabaseField(columnName = "timestamp")
+    public long timestamp; //当前时间
+
     @DatabaseField(columnName = "reserve1")
     public String reserve1; //保留字段未使用
 
@@ -62,10 +65,11 @@ public class MonitorInfo {
         waitTime = resultInfo.mStartupInfo.mStartupTime.waitTime;
         startTime = resultInfo.mStartupInfo.mStartupData.startTime;
         startupMemory = resultInfo.mStartupInfo.mStartupData.startupMemory;
+        timestamp = System.currentTimeMillis();
     }
 
     public MonitorInfo() {
-
+        timestamp = System.currentTimeMillis();
     }
 
     @Override
@@ -80,6 +84,7 @@ public class MonitorInfo {
                 ", waitTime=" + waitTime +
                 ", startTime=" + startTime +
                 ", startupMemory=" + startupMemory +
+                ", timestamp=" + timestamp +
                 ", reserve1='" + reserve1 + '\'' +
                 ", reserve2='" + reserve2 + '\'' +
                 ", reserve3='" + reserve3 + '\'' +
