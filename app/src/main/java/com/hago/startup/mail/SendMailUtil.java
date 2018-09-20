@@ -3,6 +3,7 @@ package com.hago.startup.mail;
 import android.support.annotation.NonNull;
 
 import com.hago.startup.MonitorTaskInstance;
+import com.hago.startup.bean.ResultInfo;
 
 import java.io.File;
 
@@ -16,20 +17,6 @@ public class SendMailUtil {
     private final static String PWD = "kihjwbrkdjjjbdhg";
     private final static String[] TO_ADDRESS = {"huangzhilong@yy.com"};
 
-    /**
-     * 带附件
-     * @param file
-     */
-    public static void send(final File file){
-        final MailInfo mailInfo = createMail();
-        final MailSender sms = new MailSender();
-        MonitorTaskInstance.getInstance().executeRunnable(new Runnable() {
-            @Override
-            public void run() {
-                //sms.sendFileMail(mailInfo, file);
-            }
-        });
-    }
 
     public static void send(){
         final MailInfo mailInfo = createMail();
