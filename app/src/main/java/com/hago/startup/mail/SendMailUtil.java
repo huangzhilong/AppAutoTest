@@ -18,8 +18,13 @@ public class SendMailUtil {
     private final static String[] TO_ADDRESS = {"huangzhilong@yy.com"};
 
 
-    public static void send(){
-        final MailInfo mailInfo = createMail();
+    public static void send(String data){
+        final MailInfo mailInfo = new MailInfo();
+        mailInfo.setUserName(USER); // 你的邮箱地址
+        mailInfo.setPassword(PWD);// 您的邮箱密码
+        mailInfo.setToAddress(TO_ADDRESS); // 发到哪个邮件去
+        mailInfo.setSubject("Hello"); // 邮件主题
+        mailInfo.setContent(data); // 邮件文本
         final MailSender sms = new MailSender();
         MonitorTaskInstance.getInstance().executeRunnable(new Runnable() {
             @Override
@@ -27,17 +32,6 @@ public class SendMailUtil {
                 sms.sendTextMail(mailInfo);
             }
         });
-    }
-
-    @NonNull
-    private static MailInfo createMail() {
-        final MailInfo mailInfo = new MailInfo();
-        mailInfo.setUserName(USER); // 你的邮箱地址
-        mailInfo.setPassword(PWD);// 您的邮箱密码
-        mailInfo.setToAddress(TO_ADDRESS); // 发到哪个邮件去
-        mailInfo.setSubject("Hello"); // 邮件主题
-        mailInfo.setContent("Android 测试"); // 邮件文本
-        return mailInfo;
     }
 }
 

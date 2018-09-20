@@ -74,7 +74,7 @@ public class MailSender {
 
             BodyPart mBodyPart = new MimeBodyPart();
             Multipart mMultipart = new MimeMultipart();
-            mBodyPart.setContent(mailContent + "html", "text/html; charset=utf-8");
+            mBodyPart.setContent(mailContent, "text/html; charset=utf-8");
             mMultipart.addBodyPart(mBodyPart);
             // 附件
             if (!Utils.empty(mailInfo.getAttachFileNames())) {

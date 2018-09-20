@@ -45,6 +45,7 @@ public class SearchResultTask extends AbsDbTask<List<MonitorInfo>> {
                     }
                 }
             }
+            queryBuilder.orderBy("id", false);
             List<MonitorInfo> results = dao.query(queryBuilder.prepare());
             handleSuccess(results);
         } catch (Exception e) {
