@@ -27,7 +27,7 @@ public class StartupTimeReceiver extends BroadcastReceiver {
             startAppInfo.startTime = startTime;
             startAppInfo.startupMemory = memory;
             LogUtil.logI(TAG, "startupData: %s", startAppInfo);
-            NotificationCenter.INSTANCE.emitterStartData(startAppInfo);
+            NotificationCenter.INSTANCE.emitterStartInfo(startAppInfo);
         }
     }
 }

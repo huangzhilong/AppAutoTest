@@ -29,8 +29,6 @@ public class TableUtil {
             "timestamp"
     };
 
-    String text = "<table border=\"1\"> <tr><th>Month</th><th>Savings</th></tr><tr><td>January</td><td>$100</td></tr></table>";
-
     public static String createMailTableText(List<MonitorInfo> result) {
         if (Utils.empty(result)) {
             LogUtil.logI(TAG, "createMailTableText result is empty");

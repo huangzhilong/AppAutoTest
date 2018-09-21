@@ -28,5 +28,5 @@ public class Constant {
     public static final long START_MONITOR_INTERVAL = 5 * 60 * 1000;
 
     //启动统计次数，第一次启动不算
-    public static final int START_COUNT = 3;
+    public static final int START_COUNT = 4;
 }

@@ -16,14 +16,18 @@ import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.Utils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Maybe;
 import io.reactivex.MaybeEmitter;
 import io.reactivex.MaybeOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.BiFunction;
+import io.reactivex.functions.Consumer;
 
 /**
  * Created by huangzhilong on 18/9/11.
@@ -35,20 +39,26 @@ public enum NotificationCenter {
 
     private static final String TAG = "NotificationCenter";
 
-    private MaybeEmitter<StartAppInfo> mStartupDataMaybeEmitter;
+    //app自己计算的时间和内存
+    private MaybeEmitter<StartAppInfo> mStartAppEmitter;
 
-    private MaybeEmitter<StartCmdInfo> mStartupTimeMaybeEmitter;
+    //cmd启动时间
+    private MaybeEmitter<StartCmdInfo> mStartCmdEmitter;
 
-    private MaybeEmitter<Boolean> mInstallMaybeEmitter;
+    //app安装
+    private MaybeEmitter<Boolean> mInstallEmitter;
 
-    private MaybeEmitter<Boolean> mUnInstallMaybeEmitter;
+    //app卸载
+    private MaybeEmitter<Boolean> mUnInstallEmitter;
+
+    //结果获取
+    private MaybeEmitter<List<StartupInfo>> mResultEmitter;
 
     /**
-     * 获取启动结果
-     *
+     * 启动app
      * @return
      */
-    public Maybe<StartupInfo> getAppInfo() {
+    private Maybe<StartupInfo> getAppInfo() {
         return Maybe.zip(
                 getAppStartInfo(),
                 getAppStartTime(),
@@ -64,9 +74,101 @@ public enum NotificationCenter {
         ).timeout(30, TimeUnit.SECONDS);
     }
 
+    private Maybe<StartAppInfo> getAppStartInfo() {
+        return Maybe.create(new MaybeOnSubscribe<StartAppInfo>() {
+            @Override
+            public void subscribe(MaybeEmitter<StartAppInfo> e) throws Exception {
+                mStartAppEmitter = e;
+            }
+        }).timeout(30, TimeUnit.SECONDS).doFinally(new Action() {
+            @Override
+            public void run() throws Exception {
+                mStartAppEmitter = null;
+            }
+        });
+    }
+
+    private Maybe<StartCmdInfo> getAppStartTime() {
+        return Maybe.create(new MaybeOnSubscribe<StartCmdInfo>() {
+            @Override
+            public void subscribe(MaybeEmitter<StartCmdInfo> e) throws Exception {
+                mStartCmdEmitter = e;
+                StartAppTimeCmd startAppCmd = new StartAppTimeCmd();
+                startAppCmd.setCmdCallback(mStartupTimeCmdCallback);
+                MonitorTaskInstance.getInstance().executeRunnable(startAppCmd);
+            }
+        }).timeout(30, TimeUnit.SECONDS).doFinally(new Action() {
+            @Override
+            public void run() throws Exception {
+                mStartCmdEmitter = null;
+            }
+        });
+    }
+
+    private ICallback<StartCmdInfo> mStartupTimeCmdCallback = new ICallback<StartCmdInfo>() {
+        @Override
+        public void onFailed(String msg) {
+            LogUtil.logI(TAG, "mStartupTimeCmdCallback onFailed " + msg);
+        }
+
+        @Override
+        public void onSuccess(StartCmdInfo data) {
+            LogUtil.logI(TAG, "mStartupTimeCmdCallback success " + data);
+            emitterStartCmd(data);
+        }
+    };
+
+    /**
+     *
+     * @param count app 启动次数
+     * @return
+     */
+    public Maybe<List<StartupInfo>> getStartResult(final int count) {
+        return Maybe.create(new MaybeOnSubscribe<List<StartupInfo>>() {
+            @Override
+            public void subscribe(MaybeEmitter<List<StartupInfo>> e) throws Exception {
+                mResultEmitter = e;
+                mResult = new ArrayList<>(count);
+                startApp(count);
+            }
+        }).timeout(30 * count, TimeUnit.SECONDS).doFinally(new Action() {
+            @Override
+            public void run() throws Exception {
+                mResultEmitter = null;
+            }
+        });
+    }
+
+    private List<StartupInfo> mResult;
+
+    private void startApp(final int count) {
+        getAppInfo().delay(2, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<StartupInfo>() {
+                    @Override
+                    public void accept(@NonNull StartupInfo startupInfo) throws Exception {
+                        mResult.add(startupInfo);
+                        LogUtil.logI(TAG, "startApp result size: %s  data: %s", mResult.size(), startupInfo);
+                        if (mResult.size() < count) {
+                            startApp(count);
+                        } else {
+                            LogUtil.logI(TAG, "startApp completed!");
+                            Utils.safeEmitterSuccess(mResultEmitter, mResult);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        LogUtil.logI(TAG, "startApp size: %s  throwable: %s", mResult.size(), throwable);
+                        if (mResult.size() < count) {
+                            startApp(count);
+                        }
+                    }
+                });
+    }
+
     /**
      * 安装app
-     *
      * @param path
      * @param context
      * @return
@@ -75,13 +177,13 @@ public enum NotificationCenter {
         return Maybe.create(new MaybeOnSubscribe<Boolean>() {
             @Override
             public void subscribe(MaybeEmitter<Boolean> e) throws Exception {
-                mInstallMaybeEmitter = e;
+                mInstallEmitter = e;
                 smartInstall(path, context);
             }
         }).timeout(60, TimeUnit.SECONDS).doFinally(new Action() {
             @Override
             public void run() throws Exception {
-                mInstallMaybeEmitter = null;
+                mInstallEmitter = null;
             }
         });
     }
@@ -96,68 +198,35 @@ public enum NotificationCenter {
         return Maybe.create(new MaybeOnSubscribe<Boolean>() {
             @Override
             public void subscribe(MaybeEmitter<Boolean> e) throws Exception {
-                mUnInstallMaybeEmitter = e;
+                mUnInstallEmitter = e;
                 startUnInstall(context);
             }
         }).timeout(30, TimeUnit.SECONDS).doFinally(new Action() {
             @Override
             public void run() throws Exception {
-                mUnInstallMaybeEmitter = null;
-            }
-        });
-    }
-
-    private Maybe<StartAppInfo> getAppStartInfo() {
-        return Maybe.create(new MaybeOnSubscribe<StartAppInfo>() {
-            @Override
-            public void subscribe(MaybeEmitter<StartAppInfo> e) throws Exception {
-                mStartupDataMaybeEmitter = e;
-            }
-        }).doFinally(new Action() {
-            @Override
-            public void run() throws Exception {
-                mStartupDataMaybeEmitter = null;
-            }
-        });
-    }
-
-    private Maybe<StartCmdInfo> getAppStartTime() {
-        return Maybe.create(new MaybeOnSubscribe<StartCmdInfo>() {
-            @Override
-            public void subscribe(MaybeEmitter<StartCmdInfo> e) throws Exception {
-                mStartupTimeMaybeEmitter = e;
-                startAppCmd();
-            }
-        }).doFinally(new Action() {
-            @Override
-            public void run() throws Exception {
-                mStartupTimeMaybeEmitter = null;
+                mUnInstallEmitter = null;
             }
         });
     }
 
     public void emitterInstall() {
-        Utils.safeEmitterSuccess(mInstallMaybeEmitter, true);
+        Utils.safeEmitterSuccess(mInstallEmitter, true);
     }
 
-    public void emitterStartData(StartAppInfo startupData) {
-        Utils.safeEmitterSuccess(mStartupDataMaybeEmitter, startupData);
+    public void emitterStartInfo(StartAppInfo startupData) {
+        Utils.safeEmitterSuccess(mStartAppEmitter, startupData);
     }
 
-    public void emitterStartTime(StartCmdInfo startupTime) {
-        Utils.safeEmitterSuccess(mStartupTimeMaybeEmitter, startupTime);
+    public void emitterStartCmd(StartCmdInfo startupTime) {
+        Utils.safeEmitterSuccess(mStartCmdEmitter, startupTime);
     }
 
     public void emitterUnInstall() {
-        Utils.safeEmitterSuccess(mUnInstallMaybeEmitter, true);
+        Utils.safeEmitterSuccess(mUnInstallEmitter, true);
     }
 
     private void smartInstall(String path, Context context) {
         LogUtil.logI(TAG, "smartInstall path: " + path);
-        // Uri uri = getUriForFile(new File(path), context);
-        // Intent localIntent = new Intent(Intent.ACTION_VIEW);
-        // localIntent.setDataAndType(uri, "application/vnd.android.package-archive");
-        // context.startActivity(localIntent);
         Intent intent = new Intent(Intent.ACTION_VIEW);
         File apkFile = new File(path);
         //判断是否是AndroidN以及更高的版本
@@ -170,12 +239,6 @@ public enum NotificationCenter {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
         context.startActivity(intent);
-    }
-
-    private void startAppCmd() {
-        StartAppTimeCmd startAppCmd = new StartAppTimeCmd();
-        startAppCmd.setCmdCallback(mStartupTimeCmdCallback);
-        MonitorTaskInstance.getInstance().executeRunnable(startAppCmd);
     }
 
     private void startUnInstall(Context context) {
@@ -206,18 +269,4 @@ public enum NotificationCenter {
             context.startActivity(intent);
         }
     }
-
-
-    private ICallback<StartCmdInfo> mStartupTimeCmdCallback = new ICallback<StartCmdInfo>() {
-        @Override
-        public void onFailed(String msg) {
-            LogUtil.logI(TAG, "mStartupTimeCmdCallback onFailed " + msg);
-        }
-
-        @Override
-        public void onSuccess(StartCmdInfo data) {
-            LogUtil.logI(TAG, "mStartupTimeCmdCallback success " + data);
-            emitterStartTime(data);
-        }
-    };
 }
