@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mStartupPresenter.checkStartAccessibilityService();
     }
 
-
     @Override
     public void updateAccessibilityStateView(boolean open, SpannableString spannableString) {
         tvState.setText(spannableString);

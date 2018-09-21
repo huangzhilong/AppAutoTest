@@ -13,10 +13,30 @@ public abstract class AbsDbTask<T> implements Runnable {
 
     protected Context mContext;
     protected ICallback<T> mCallback;
+    protected int retryTime = 1; //失败自动重试一次
 
     public AbsDbTask(Context context, ICallback<T> callback) {
         mContext = context;
         mCallback = callback;
+    }
+
+    protected abstract T operateDb() throws Exception;
+
+    @Override
+    public void run() {
+        while (retryTime >= 0) {
+            try {
+                T data = operateDb();
+                handleSuccess(data);
+                break;
+            } catch (Exception e) {
+                retryTime--;
+                if (retryTime < 0) {
+                    handleFailed(e);
+                    break;
+                }
+            }
+        }
     }
 
     //回调应该回到主线程

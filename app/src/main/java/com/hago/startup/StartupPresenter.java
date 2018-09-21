@@ -26,7 +26,6 @@ import io.reactivex.Maybe;
 import io.reactivex.MaybeEmitter;
 import io.reactivex.MaybeOnSubscribe;
 import io.reactivex.MaybeSource;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
@@ -54,7 +53,21 @@ public class StartupPresenter {
     public StartupPresenter(IStartupView view) {
         mView = view;
         mContext = (Context) mView;
+        timerStartMonitor();
     }
+
+    private void timerStartMonitor() {
+
+    }
+
+    private Runnable mRunnable = new Runnable() {
+        @Override
+        public void run() {
+            LogUtil.logI(TAG, "startMonitor");
+            startMonitor();
+            MonitorTaskInstance.getInstance().postToMainThreadDelay(this, Constant.START_MONITOR_INTERVAL);
+        }
+    };
 
     public void checkStartAccessibilityService() {
         accessibility = Utils.isStartAccessibilityService(mContext);
@@ -163,19 +176,17 @@ public class StartupPresenter {
         info.mStartAppInfo.startTime /= mResultList.size();
         ResultInfo resultInfo = new ResultInfo(mApkInfo, info);
         LogUtil.logI(TAG, "handlerResult: %s", resultInfo);
-        //插入数据库
-        InsertResultTask task = new InsertResultTask(resultInfo, mInsertCallback, mContext);
-        MonitorTaskInstance.getInstance().executeRunnable(task);
         return resultInfo;
     }
 
     private MaybeEmitter<Boolean> mDbEmitter;
 
-    private Maybe<Boolean> insertResultDb(ResultInfo resultInfo) {
+    private Maybe<Boolean> insertResultDb(final ResultInfo resultInfo) {
         return Maybe.create(new MaybeOnSubscribe<Boolean>() {
             @Override
             public void subscribe(MaybeEmitter<Boolean> e) throws Exception {
                 mDbEmitter = e;
+                insertResult(resultInfo);
             }
         }).doFinally(new Action() {
             @Override
@@ -185,44 +196,28 @@ public class StartupPresenter {
         });
     }
 
+    private void insertResult(ResultInfo info) {
+        InsertResultTask task = new InsertResultTask(info, mContext, new ICallback<Integer>() {
+            @Override
+            public void onFailed(String msg) {
+                LogUtil.logI(TAG, "mInsertCallback onFailed: %s", msg);
+                mView.updateStepView(String.format(stepTxt, "存储数据库失败"));
+                Utils.safeEmitterSuccess(mDbEmitter, false);
+            }
+
+            @Override
+            public void onSuccess(Integer data) {
+                LogUtil.logI(TAG, "mInsertCallback onSuccess: %s", data);
+                mView.updateStepView(String.format(stepTxt, "存储数据库成功"));
+                Utils.safeEmitterSuccess(mDbEmitter, true);
+            }
+        });
+        MonitorTaskInstance.getInstance().executeRunnable(task);
+    }
+
     public void release() {
         if (mStartDisposable != null && !mStartDisposable.isDisposed()) {
             mStartDisposable.isDisposed();
         }
     }
-
-    public void queryMoitorResult(HashMap<String, Object> searchMap) {
-        SearchResultTask task = new SearchResultTask(searchMap, mContext, mSearchCallback);
-        MonitorTaskInstance.getInstance().executeRunnable(task);
-    }
-
-    //插入数据库回调
-    private ICallback<Integer> mInsertCallback = new ICallback<Integer>() {
-
-        @Override
-        public void onFailed(String msg) {
-            LogUtil.logI(TAG, "mInsertCallback onFailed: %s", msg);
-            mView.updateStepView(String.format(stepTxt, "存储数据库失败"));
-            Utils.safeEmitterSuccess(mDbEmitter, false);
-        }
-
-        @Override
-        public void onSuccess(Integer data) {
-            LogUtil.logI(TAG, "mInsertCallback onSuccess: %s", data);
-            mView.updateStepView(String.format(stepTxt, "存储数据库成功"));
-            Utils.safeEmitterSuccess(mDbEmitter, true);
-        }
-    };
-
-    private ICallback<List<MonitorInfo>> mSearchCallback = new ICallback<List<MonitorInfo>>() {
-        @Override
-        public void onFailed(String msg) {
-            LogUtil.logI(TAG, "mSearchCallback onFailed: %s", msg);
-        }
-
-        @Override
-        public void onSuccess(List<MonitorInfo> data) {
-            LogUtil.logI(TAG, "mInsertCallback onSuccess: %s", data);
-        }
-    };
 }

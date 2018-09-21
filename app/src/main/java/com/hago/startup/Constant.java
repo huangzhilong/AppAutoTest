@@ -24,8 +24,10 @@ public class Constant {
 
     public static final String MONITOR_PACKAGENAME = "com.hago.startup";
 
-    //每5分钟执行一次
-    public static final long START_MONITOR_INTERVAL = 5 * 60 * 1000;
+    public static final String EMPTYSTR = "";
+
+    //每6分钟执行一次
+    public static final long START_MONITOR_INTERVAL = 6 * 60 * 1000;
 
     //启动统计次数，第一次启动不算
     public static final int START_COUNT = 4;

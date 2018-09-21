@@ -13,18 +13,13 @@ public class InsertResultTask extends AbsDbTask<Integer> {
 
     private MonitorInfo mMonitorInfo;
 
-    public InsertResultTask(ResultInfo info, ICallback<Integer> callback, Context context) {
+    public InsertResultTask(ResultInfo info, Context context, ICallback<Integer> callback) {
         super(context, callback);
         mMonitorInfo = new MonitorInfo(info);
     }
 
     @Override
-    public void run() {
-        try {
-            int result = DBHelper.getDBInstance(mContext).getMonitorInfoDao().create(mMonitorInfo);
-            handleSuccess(result);
-        } catch (Exception e) {
-            handleFailed(e);
-        }
+    protected Integer operateDb() throws Exception {
+        return DBHelper.getDBInstance(mContext).getMonitorInfoDao().create(mMonitorInfo);
     }
 }

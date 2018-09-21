@@ -1,6 +1,7 @@
 package com.hago.startup.db;
 
 import com.hago.startup.bean.ResultInfo;
+import com.hago.startup.util.Utils;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -18,7 +19,7 @@ public class MonitorInfo {
     public String branch; //分支
 
     @DatabaseField(columnName = "version")
-    public String version; //版本号
+    public long version; //版本号
 
     @DatabaseField(columnName = "size")
     public long size; //包大小
@@ -58,7 +59,7 @@ public class MonitorInfo {
 
     public MonitorInfo(ResultInfo resultInfo) {
         branch = resultInfo.mApkInfo.branch;
-        version = resultInfo.mApkInfo.version;
+        version = Utils.safeParseLong(resultInfo.mApkInfo.version);
         size = resultInfo.mApkInfo.size;
         thisTime = resultInfo.mStartupInfo.mStartCmdInfo.thisTime;
         totalTime = resultInfo.mStartupInfo.mStartCmdInfo.totalTime;
