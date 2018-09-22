@@ -38,7 +38,7 @@ public class MyAccessibilityService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         int eventType = event.getEventType();
-        LogUtil.logD(TAG, "onAccessibilityEvent eventType: " + eventType);
+        //LogUtil.logD(TAG, "onAccessibilityEvent eventType: " + eventType);
         if ((eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED || eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
                 && (event.getPackageName().equals("com.android.packageinstaller") || event.getPackageName().equals("com.yy.hiyo"))) {
             handlerInstant();
@@ -52,7 +52,7 @@ public class MyAccessibilityService extends AccessibilityService {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void handlerInstant() {
-        LogUtil.logD(TAG, "handlerInstant");
+        //LogUtil.logD(TAG, "handlerInstant");
         AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
         if (nodeInfo == null) {
             return;
@@ -69,9 +69,9 @@ public class MyAccessibilityService extends AccessibilityService {
             if (nodeList != null && nodeList.size() > 0) {
                 for (int j = 0; j < nodeList.size(); j++) {
                     AccessibilityNodeInfo node = nodeList.get(j);
-                    LogUtil.logD(TAG, "handlerInstant className " + node.getClassName() + "  " + operation[i]);
+                    //LogUtil.logD(TAG, "handlerInstant className " + node.getClassName() + "  " + operation[i]);
                     if (node != null && node.isEnabled() && node.isClickable()) {
-                        LogUtil.logI(TAG, "handlerInstant click " + operation[i]);
+                        //LogUtil.logI(TAG, "handlerInstant click " + operation[i]);
                         node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                     }
                 }

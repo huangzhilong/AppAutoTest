@@ -51,8 +51,11 @@ public enum NotificationCenter {
     //app卸载
     private MaybeEmitter<Boolean> mUnInstallEmitter;
 
-    //结果获取
+    //app结果获取
     private MaybeEmitter<List<StartupInfo>> mResultEmitter;
+
+    //send mail
+    private MaybeEmitter<Boolean> mMailEmitter;
 
     /**
      * 启动app

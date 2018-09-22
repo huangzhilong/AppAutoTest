@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if (v == tvStart) {
-            mStartupPresenter.startMonitor();
+
         } else if (v == tvState) {
             mStartupPresenter.openAccessibilityService();
         }

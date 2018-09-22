@@ -31,4 +31,18 @@ public class Constant {
 
     //启动统计次数，第一次启动不算
     public static final int START_COUNT = 4;
+
+    //-----------SharedPreferences key
+
+    public static final String MAIL_TIMESTAMP = "sendMailTimestamp"; //上次发送邮件的时间戳
+    public static final String MAIL_DATE = "sendMailDate"; //上次发送邮件的日期
+    public static final String MONITOR_VERSION = "monitorVersion"; //上次自动化的版本号
+
+    //-------------------------
+
+    //-----------邮箱相关
+    public final static String USER = "964123660@qq.com";
+    public final static String PWD = "kihjwbrkdjjjbdhg";
+    public final static String[] TO_ADDRESS = {"huangzhilong@yy.com", "wuzhonglian@yy.com"};
+    //------------
 }

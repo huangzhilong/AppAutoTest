@@ -61,7 +61,7 @@ public class OkHttpUtil {
         mOkHttpClient = builder.build();
     }
 
-    private void getLastBuildUrl() {
+    private void getLastBuildUrl(final long curVersion) {
         Request request = new Request.Builder().url(Constant.GET_BUILD_URL).build();
         Call call = mOkHttpClient.newCall(request);
         call.enqueue(new Callback() {
@@ -90,10 +90,17 @@ public class OkHttpUtil {
                     if (endIndex > index) {
                         result = body.substring(index, endIndex) + Constant.DOWNLOAD_SUFFIX;
                         LogUtil.logI(TAG, "getLastBuildUrl result: " + result);
-
-                        //先指定测试包地址，到时去掉
-                        result = "http://repo.yypm.com/dwbuild/mobile/android/hiyo/hiyo-android_1.3.0_startup_monitor_feature/20180911-3242-r5fb1c1c9a18474fc3fcd8ad1d2fe8f7f919a389b/hiyo.apk";
-                        Utils.safeEmitterSuccess(mUrlEmitter, result);
+                        ApkInfo apkInfo = ApkInfoUtil.getApkInfo(result);
+                        long version = Utils.safeParseLong(apkInfo.version);
+                        if (version > curVersion) {
+                            //先指定测试包地址，到时去掉
+                            result = "http://repo.yypm.com/dwbuild/mobile/android/hiyo/hiyo-android_1.3.0_startup_monitor_feature/20180911-3242-r5fb1c1c9a18474fc3fcd8ad1d2fe8f7f919a389b/hiyo.apk";
+                            Utils.safeEmitterSuccess(mUrlEmitter, result);
+                        } else {
+                            LogUtil.logI(TAG, "curVersion: %s  >=  version: %s", curVersion, version);
+                            Exception exception = new Exception("最新构建版本不高于现有版本");
+                            Utils.safeEmitterError(mUrlEmitter, exception);
+                        }
                         return;
                     }
                 }
@@ -162,13 +169,13 @@ public class OkHttpUtil {
     /**
      * 获取最新打包的下载地址
      */
-    public Maybe<String> getDownloadUrl() {
+    public Maybe<String> getDownloadUrl(final long curVersion) {
         LogUtil.logI(TAG, "start getDownloadUrl");
         return Maybe.create(new MaybeOnSubscribe<String>() {
             @Override
             public void subscribe(MaybeEmitter<String> e) throws Exception {
                 mUrlEmitter = e;
-                getLastBuildUrl();
+                getLastBuildUrl(curVersion);
             }
         }).timeout(60, TimeUnit.SECONDS).doFinally(new Action() {
             @Override
