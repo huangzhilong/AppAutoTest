@@ -77,7 +77,7 @@ public class StartupPresenter {
             if (accessibility) {
                 startMonitor();
             } else {
-                Toast.makeText(mContext, "请开启辅助功能，不然无法自动化测试!!!", Toast.LENGTH_LONG);
+                Toast.makeText(mContext, "请开启辅助功能，不然无法自动化测试!!!", Toast.LENGTH_LONG).show();
             }
             MonitorTaskInstance.getInstance().postToMainThreadDelay(this, Constant.START_MONITOR_INTERVAL);
         }
@@ -272,7 +272,7 @@ public class StartupPresenter {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         final String today = year + "-" + month + "-" + day;
         LogUtil.logI(TAG, "sendMail timestamp: %s date: %s today: %s  hour: %s", timestamp, date, today, hour);
-        if (!today.equals(date) && hour > 5) {
+        if (!today.equals(date) && hour > Constant.SEND_MAIL_TIME) {
             HashMap<String, SearchResultTask.SearchInfo> hashMap = new HashMap<>();
             SearchResultTask.SearchInfo searchInfo = new SearchResultTask.SearchInfo(SearchResultTask.GT, timestamp);
             hashMap.put("timestamp", searchInfo);
