@@ -222,7 +222,7 @@ public class StartupPresenter {
     }
 
     private void insertResult(final ResultInfo info) {
-        InsertResultTask task = new InsertResultTask(info, mContext, new ICallback<Integer>() {
+        InsertResultTask task = new InsertResultTask(info, new ICallback<Integer>() {
             @Override
             public void onFailed(String msg) {
                 LogUtil.logI(TAG, "mInsertCallback onFailed: %s", msg);
@@ -278,7 +278,7 @@ public class StartupPresenter {
             HashMap<String, SearchResultTask.SearchInfo> hashMap = new HashMap<>();
             SearchResultTask.SearchInfo searchInfo = new SearchResultTask.SearchInfo(SearchResultTask.GT, timestamp);
             hashMap.put("timestamp", searchInfo);
-            SearchResultTask task = new SearchResultTask(hashMap, mContext, new ICallback<List<MonitorInfo>>() {
+            SearchResultTask task = new SearchResultTask(hashMap, new ICallback<List<MonitorInfo>>() {
                 @Override
                 public void onFailed(String msg) {
                     LogUtil.logI(TAG, "sendMail search failed : %s", msg);

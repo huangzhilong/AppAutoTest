@@ -11,12 +11,10 @@ import com.hago.startup.ICallback;
 
 public abstract class AbsDbTask<T> implements Runnable {
 
-    protected Context mContext;
     protected ICallback<T> mCallback;
     protected int retryTime = 1; //失败自动重试一次
 
-    public AbsDbTask(Context context, ICallback<T> callback) {
-        mContext = context;
+    public AbsDbTask(ICallback<T> callback) {
         mCallback = callback;
     }
 

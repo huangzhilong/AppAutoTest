@@ -26,6 +26,16 @@ public class DBHelper extends OrmLiteSqliteOpenHelper  {
         super(context, DB_NAME, null, VERSION);
     }
 
+    public static void initDB(Context context) {
+        if (mDBInstance == null) {
+            synchronized (DBHelper.class) {
+                if (mDBInstance == null) {
+                    mDBInstance = new DBHelper(context);
+                }
+            }
+        }
+    }
+
     @Override
     public void onCreate(SQLiteDatabase database, ConnectionSource connectionSource) {
         try {
@@ -44,14 +54,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper  {
 
     private Dao<MonitorInfo, Integer> mMonitorInfoDao;
 
-    public static DBHelper getDBInstance(Context context) {
-        if (mDBInstance == null) {
-            synchronized (DBHelper.class) {
-                if (mDBInstance == null) {
-                    mDBInstance = new DBHelper(context);
-                }
-            }
-        }
+    public static DBHelper getDBInstance() {
         return mDBInstance;
     }
 

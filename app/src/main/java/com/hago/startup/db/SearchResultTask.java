@@ -1,6 +1,5 @@
 package com.hago.startup.db;
 
-import android.content.Context;
 import android.support.annotation.IntDef;
 
 import com.hago.startup.ICallback;
@@ -24,14 +23,14 @@ public class SearchResultTask extends AbsDbTask<List<MonitorInfo>> {
 
     private HashMap<String, SearchInfo> searchMap;
 
-    public SearchResultTask(HashMap<String, SearchInfo> searchMap, Context context, ICallback<List<MonitorInfo>> callback) {
-        super(context, callback);
+    public SearchResultTask(HashMap<String, SearchInfo> searchMap, ICallback<List<MonitorInfo>> callback) {
+        super(callback);
         this.searchMap = searchMap;
     }
 
     @Override
     protected List<MonitorInfo> operateDb() throws Exception {
-        Dao<MonitorInfo, Integer> dao = DBHelper.getDBInstance(mContext).getMonitorInfoDao();
+        Dao<MonitorInfo, Integer> dao = DBHelper.getDBInstance().getMonitorInfoDao();
         QueryBuilder<MonitorInfo, Integer> queryBuilder = dao.queryBuilder();
         if (searchMap != null && searchMap.size() > 0) {
             Where<MonitorInfo, Integer> where = queryBuilder.where();

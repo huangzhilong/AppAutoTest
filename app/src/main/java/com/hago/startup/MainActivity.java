@@ -9,6 +9,7 @@ import android.text.SpannableString;
 import android.view.View;
 import android.widget.TextView;
 
+import com.hago.startup.db.DBHelper;
 import com.hago.startup.receiver.AppInstallReceiver;
 import com.hago.startup.receiver.StartupTimeReceiver;
 import com.hago.startup.util.Utils;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvStop.setOnClickListener(this);
         tvState.setOnClickListener(this);
         registerService();
+        DBHelper.initDB(this);
         Utils.checkFilePermission(this);
         mStartupPresenter = new StartupPresenter(this);
     }

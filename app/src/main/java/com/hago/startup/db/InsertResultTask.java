@@ -1,7 +1,5 @@
 package com.hago.startup.db;
 
-import android.content.Context;
-
 import com.hago.startup.ICallback;
 import com.hago.startup.bean.ResultInfo;
 
@@ -13,13 +11,13 @@ public class InsertResultTask extends AbsDbTask<Integer> {
 
     private MonitorInfo mMonitorInfo;
 
-    public InsertResultTask(ResultInfo info, Context context, ICallback<Integer> callback) {
-        super(context, callback);
+    public InsertResultTask(ResultInfo info, ICallback<Integer> callback) {
+        super(callback);
         mMonitorInfo = new MonitorInfo(info);
     }
 
     @Override
     protected Integer operateDb() throws Exception {
-        return DBHelper.getDBInstance(mContext).getMonitorInfoDao().create(mMonitorInfo);
+        return DBHelper.getDBInstance().getMonitorInfoDao().create(mMonitorInfo);
     }
 }

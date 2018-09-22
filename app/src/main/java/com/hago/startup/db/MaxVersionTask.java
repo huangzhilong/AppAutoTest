@@ -1,7 +1,5 @@
 package com.hago.startup.db;
 
-import android.content.Context;
-
 import com.hago.startup.ICallback;
 import com.hago.startup.util.Utils;
 import com.j256.ormlite.dao.Dao;
@@ -14,13 +12,13 @@ import com.j256.ormlite.stmt.QueryBuilder;
 
 public class MaxVersionTask extends AbsDbTask<Long> {
 
-    public MaxVersionTask(Context context, ICallback<Long> callback) {
-        super(context, callback);
+    public MaxVersionTask(ICallback<Long> callback) {
+        super(callback);
     }
 
     @Override
     protected Long operateDb() throws Exception {
-        Dao<MonitorInfo, Integer> dao = DBHelper.getDBInstance(mContext).getMonitorInfoDao();
+        Dao<MonitorInfo, Integer> dao = DBHelper.getDBInstance().getMonitorInfoDao();
         QueryBuilder<MonitorInfo, Integer> queryBuilder = dao.queryBuilder();
         queryBuilder.selectRaw("MAX(version)");
         String [] result = dao.queryRaw(queryBuilder.prepareStatementString()).getFirstResult();
