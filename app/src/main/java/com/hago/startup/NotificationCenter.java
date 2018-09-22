@@ -116,7 +116,7 @@ public enum NotificationCenter {
 
         @Override
         public void onSuccess(StartCmdInfo data) {
-            LogUtil.logI(TAG, "mStartupTimeCmdCallback success " + data);
+            LogUtil.logD(TAG, "mStartupTimeCmdCallback success " + data);
             emitterStartCmd(data);
         }
     };

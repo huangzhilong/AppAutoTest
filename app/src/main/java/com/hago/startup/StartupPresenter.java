@@ -131,7 +131,8 @@ public class StartupPresenter {
                         mView.updateStepView(String.format(stepTxt, "下载apk中....."));
                         return OkHttpUtil.getInstance().startDownloadApk(s);
                     }
-                }).flatMap(new Function<ApkInfo, MaybeSource<Boolean>>() {
+                }).delay(1, TimeUnit.SECONDS)
+                .flatMap(new Function<ApkInfo, MaybeSource<Boolean>>() {
                     @Override
                     public MaybeSource<Boolean> apply(ApkInfo s) throws Exception {
                         mApkInfo = s;
@@ -167,7 +168,7 @@ public class StartupPresenter {
                 }).subscribe(new Consumer<Boolean>() {
                     @Override
                     public void accept(@NonNull Boolean results) throws Exception {
-                        LogUtil.logI(TAG, "startMonitor completed! : %s", results);
+                        LogUtil.logI(TAG, "startMonitor completed!");
                         mView.updateStepView("测试完成");
                     }
                 }, new Consumer<Throwable>() {

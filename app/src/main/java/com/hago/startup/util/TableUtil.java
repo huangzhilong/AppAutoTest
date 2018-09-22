@@ -25,7 +25,7 @@ public class TableUtil {
     private final static String TABLE_TD_END = "</td>";
 
     private final static String[] mFieldsOrder = {
-            "id", "branch", "version", "size", "thisTime", "totalTime", "waitTime", "startTime", "startupMemory",
+            "id", "version", "thisTime", "totalTime", "waitTime", "startTime", "startupMemory", "branch", "size",
             "timestamp"
     };
 
