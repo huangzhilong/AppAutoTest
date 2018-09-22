@@ -169,11 +169,13 @@ public class StartupPresenter {
                     @Override
                     public void accept(@NonNull Boolean results) throws Exception {
                         LogUtil.logI(TAG, "startMonitor completed! : %s", results);
+                        mView.updateStepView("测试完成");
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         LogUtil.logI(TAG, "startMonitor failed throwable: " + throwable);
+                        mView.updateStepView("此次测试失败");
                     }
                 });
     }
