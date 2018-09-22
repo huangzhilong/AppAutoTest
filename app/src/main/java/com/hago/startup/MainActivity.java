@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final String TAG = "MainActivity";
     private TextView tvStop;
+    private TextView tvStart;
     private TextView tvState;
     private TextView tvStep;
     private StartupTimeReceiver mStartupTimeReceiver;
@@ -29,9 +30,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tvStop = findViewById(R.id.tv_stop);
+        tvStart = findViewById(R.id.tv_start);
         tvState = findViewById(R.id.tv_state);
         tvStep = findViewById(R.id.tv_step);
         tvStop.setOnClickListener(this);
+        tvStart.setOnClickListener(this);
         tvState.setOnClickListener(this);
         registerService();
         DBHelper.initDB(this);
@@ -93,6 +96,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             android.os.Process.killProcess(pid);
         } else if (v == tvState) {
             mStartupPresenter.openAccessibilityService();
+        } else if (v == tvStart) {
+            tvStart.setVisibility(View.GONE);
+            mStartupPresenter.timerStartMonitor();
         }
     }
 }

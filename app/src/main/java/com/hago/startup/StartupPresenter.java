@@ -63,11 +63,9 @@ public class StartupPresenter {
         mView = view;
         mContext = (Context) mView;
         CommonPref.INSTANCE.init(mContext);
-        accessibility = Utils.isStartAccessibilityService(mContext);
-        timerStartMonitor();
     }
 
-    private void timerStartMonitor() {
+    public void timerStartMonitor() {
         mCurVersion = CommonPref.INSTANCE.getLong(Constant.MONITOR_VERSION);
         LogUtil.logI(TAG, "get mCurVersion: %s", mCurVersion);
         MonitorTaskInstance.getInstance().postToMainThread(mRunnable);
