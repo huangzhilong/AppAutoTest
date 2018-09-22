@@ -94,7 +94,7 @@ public class OkHttpUtil {
                         long version = Utils.safeParseLong(apkInfo.version);
                         if (version > curVersion) {
                             //先指定测试包地址，到时去掉
-                            result = "http://repo.yypm.com/dwbuild/mobile/android/hiyo/hiyo-android_1.3.0_startup_monitor_feature/20180911-3242-r5fb1c1c9a18474fc3fcd8ad1d2fe8f7f919a389b/hiyo.apk";
+                            result = "http://repo.yypm.com/dwbuild/mobile/android/hiyo/hiyo-android_1.3.0_startup_monitor_feature/20180922-3482-rd8b11182cfbebe783ec5aa2e05b7f12498276866/hiyo.apk";
                             Utils.safeEmitterSuccess(mUrlEmitter, result);
                         } else {
                             LogUtil.logI(TAG, "curVersion: %s  >=  version: %s", curVersion, version);

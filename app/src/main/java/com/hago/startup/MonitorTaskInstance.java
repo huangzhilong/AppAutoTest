@@ -33,7 +33,7 @@ public class MonitorTaskInstance {
         mExecutor.execute(runnable);
     }
 
-    private Handler mMainHandler = new Handler(Looper.getMainLooper());
+    private static Handler mMainHandler = new Handler(Looper.getMainLooper());
 
     public void postToMainThread(Runnable runnable) {
         if (runnable == null) {
@@ -47,5 +47,9 @@ public class MonitorTaskInstance {
             return;
         }
         mMainHandler.postDelayed(runnable, delay);
+    }
+
+    public void clearMsgMainThread() {
+        mMainHandler.removeCallbacksAndMessages(null);
     }
 }

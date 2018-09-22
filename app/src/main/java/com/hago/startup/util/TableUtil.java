@@ -25,7 +25,7 @@ public class TableUtil {
     private final static String TABLE_TD_END = "</td>";
 
     private final static String[] mFieldsOrder = {
-            "id", "version", "thisTime", "totalTime", "waitTime", "startTime", "startupMemory", "branch", "size",
+            "id", "version", "totalTime", "startTime", "startupMemory", "branch", "size",
             "timestamp"
     };
 
@@ -49,11 +49,36 @@ public class TableUtil {
         stringBuffer.append(TABLE_TR_START);
         for (int i = 0; i < mFieldsOrder.length; i++) {
             stringBuffer.append(TABLE_TH_START);
-            stringBuffer.append(mFieldsOrder[i]);
+            stringBuffer.append(getTitle(mFieldsOrder[i]));
             stringBuffer.append(TABLE_TH_END);
         }
         stringBuffer.append(TABLE_TR_END);
         return stringBuffer.toString();
+    }
+
+    private static String getTitle(String column) {
+        if (column.equals("version")) {
+            return "版本号";
+        }
+        if (column.equals("totalTime")) {
+            return "adb启动时间";
+        }
+        if (column.equals("startTime")) {
+            return "app计算启动时间";
+        }
+        if (column.equals("startupMemory")) {
+            return "app启动内存";
+        }
+        if (column.equals("branch")) {
+            return "分支";
+        }
+        if (column.equals("size")) {
+            return "安装包大小";
+        }
+        if (column.equals("timestamp")) {
+            return "测试时间";
+        }
+        return column;
     }
 
     private static String createTableData(List<MonitorInfo> data) {

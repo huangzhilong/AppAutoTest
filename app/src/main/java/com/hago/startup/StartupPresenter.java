@@ -63,6 +63,7 @@ public class StartupPresenter {
         mView = view;
         mContext = (Context) mView;
         CommonPref.INSTANCE.init(mContext);
+        accessibility = Utils.isStartAccessibilityService(mContext);
         timerStartMonitor();
     }
 
@@ -75,7 +76,6 @@ public class StartupPresenter {
     private Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
-            LogUtil.logI(TAG, "startMonitor");
             if (accessibility) {
                 startMonitor();
             } else {

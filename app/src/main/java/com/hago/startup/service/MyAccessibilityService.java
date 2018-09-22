@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
-import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.Utils;
 
 import java.util.List;

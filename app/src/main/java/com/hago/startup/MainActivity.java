@@ -3,6 +3,7 @@ package com.hago.startup;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Process;
 import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableString;
 import android.view.View;
@@ -15,7 +16,7 @@ import com.hago.startup.util.Utils;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, IStartupView {
 
     private static final String TAG = "MainActivity";
-    private TextView tvStart;
+    private TextView tvStop;
     private TextView tvState;
     private TextView tvStep;
     private StartupTimeReceiver mStartupTimeReceiver;
@@ -26,10 +27,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        tvStart = findViewById(R.id.tv_start);
+        tvStop = findViewById(R.id.tv_stop);
         tvState = findViewById(R.id.tv_state);
         tvStep = findViewById(R.id.tv_step);
-        tvStart.setOnClickListener(this);
+        tvStop.setOnClickListener(this);
         tvState.setOnClickListener(this);
         registerService();
         Utils.checkFilePermission(this);
@@ -82,8 +83,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        if (v == tvStart) {
-
+        if (v == tvStop) {
+            //关闭app
+            MonitorTaskInstance.getInstance().clearMsgMainThread();
+            int pid = Process.myPid();
+            System.exit(0);
+            android.os.Process.killProcess(pid);
         } else if (v == tvState) {
             mStartupPresenter.openAccessibilityService();
         }
