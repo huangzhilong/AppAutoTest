@@ -61,7 +61,7 @@ public class MailSender {
             InternetAddress [] toAddress = new InternetAddress[mailInfo.getToAddress().length];
             for (int i = 0; i < mailInfo.getToAddress().length; i++) {
                 InternetAddress internetAddress = new InternetAddress(mailInfo.getToAddress()[i]);
-                toAddress[0] = internetAddress;
+                toAddress[i] = internetAddress;
             }
             mailMessage.setRecipients(Message.RecipientType.TO, toAddress);
             // 设置邮件消息的主题
