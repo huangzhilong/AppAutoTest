@@ -25,7 +25,7 @@ public class TableUtil {
     private final static String TABLE_TD_END = "</td>";
 
     private final static String[] mFieldsOrder = {
-            "id", "version", "totalTime", "startTime", "startupMemory", "branch", "size",
+            "id", "version", "isDebug", "totalTime", "startTime", "startupMemory", "branch", "size",
             "timestamp"
     };
 
@@ -77,6 +77,9 @@ public class TableUtil {
         }
         if (column.equals("timestamp")) {
             return "测试时间";
+        }
+        if (column.equals("isDebug")) {
+            return "测试包";
         }
         return column;
     }
