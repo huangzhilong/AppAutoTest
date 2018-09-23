@@ -7,6 +7,7 @@ import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.hago.startup.bean.ApkInfo;
@@ -17,6 +18,8 @@ import com.hago.startup.db.MonitorInfo;
 import com.hago.startup.db.SearchResultTask;
 import com.hago.startup.mail.MailInfo;
 import com.hago.startup.mail.MailSender;
+import com.hago.startup.net.RequestCenter;
+import com.hago.startup.util.ApkInfoUtil;
 import com.hago.startup.util.CommonPref;
 import com.hago.startup.util.LogUtil;
 import com.hago.startup.net.OkHttpUtil;
@@ -37,6 +40,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -75,7 +79,7 @@ public class StartupPresenter {
         @Override
         public void run() {
             if (accessibility) {
-                startMonitor();
+                startMonitor(false);
             } else {
                 Toast.makeText(mContext, "请开启辅助功能，不然无法自动化测试!!!", Toast.LENGTH_LONG).show();
             }
@@ -111,7 +115,11 @@ public class StartupPresenter {
     }
 
     //卸载－>下载－>安装 －> 启动app -> 结果插入数据库 —> 邮件
-    public void startMonitor() {
+    /**
+     * 开始自动化测试
+     * @param target 是否指定了测试版本
+     */
+    public void startMonitor(final boolean target) {
         clearData();
         mView.updateStepView(String.format(stepTxt, "检测卸载已安装的hago"));
         mStartDisposable = NotificationCenter.INSTANCE.unInstall(mContext)
@@ -120,14 +128,29 @@ public class StartupPresenter {
                     public MaybeSource<String> apply(Boolean aBoolean) throws Exception {
                         //获取最新构建包地址
                         mView.updateStepView(String.format(stepTxt, "获取最新包地址"));
-                        return OkHttpUtil.getInstance().getDownloadUrl(mCurVersion);
+                        return RequestCenter.getInstance().getNewestApkUrl();
+                    }
+                }).filter(new Predicate<String>() {
+                    @Override
+                    public boolean test(String s) throws Exception {
+                        //指定测试版本不要要判断
+                        if (target) {
+                            return true;
+                        }
+                        ApkInfo apkInfo = ApkInfoUtil.getApkInfo(s);
+                        long version = Utils.safeParseLong(apkInfo.version);
+                        boolean result = version > mCurVersion;
+                        if (!result) {
+                            LogUtil.logI(TAG, "最新构建版本不高于已测试版本 version: %s  curVersion: %s", version, mCurVersion);
+                        }
+                        return result;
                     }
                 }).flatMap(new Function<String, MaybeSource<ApkInfo>>() {
                     @Override
                     public MaybeSource<ApkInfo> apply(String s) throws Exception {
                         //下载
                         mView.updateStepView(String.format(stepTxt, "下载apk中....."));
-                        return OkHttpUtil.getInstance().startDownloadApk(s);
+                        return RequestCenter.getInstance().startDownloadApk(s);
                     }
                 }).delay(1, TimeUnit.SECONDS)
                 .flatMap(new Function<ApkInfo, MaybeSource<Boolean>>() {

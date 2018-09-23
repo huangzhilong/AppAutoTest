@@ -4,14 +4,12 @@ import android.text.TextUtils;
 
 import com.hago.startup.Constant;
 import com.hago.startup.bean.ApkInfo;
-import com.hago.startup.util.ApkInfoUtil;
-import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.Utils;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
@@ -33,14 +31,11 @@ import okhttp3.Response;
 
 public class OkHttpUtil {
 
-    private static final String TAG = "OkHttpUtil";
     private static final int IO_TIME_OUT = 30;
     private static final int CONNECT_TIME_OUT = 10;
     private OkHttpClient mOkHttpClient;
 
     private static final OkHttpUtil mOkHttpUtil = new OkHttpUtil();
-    private MaybeEmitter<String> mUrlEmitter;
-    private MaybeEmitter<ApkInfo> mApkEmitter;
 
     public static OkHttpUtil getInstance() {
         return mOkHttpUtil;
@@ -64,143 +59,58 @@ public class OkHttpUtil {
         mOkHttpClient = builder.build();
     }
 
-    private void getLastBuildUrl(final long curVersion) {
-        Request request = new Request.Builder().url(Constant.GET_BUILD_URL).build();
-        Call call = mOkHttpClient.newCall(request);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                LogUtil.logI(TAG, "getLastBuildUrl onFailure: " + e.getMessage());
-                Utils.safeEmitterError(mUrlEmitter, e);
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String body = response.body().string();
-                String result;
-                if (!TextUtils.isEmpty(body)) {
-                    int index = body.lastIndexOf(Constant.MATCHER_LAST_BUILD_TAG);
-                    int endIndex = 0;
-                    if (index > 0) {
-                        for (int i = index; i < body.length(); i++) {
-                            char c = body.charAt(i);
-                            if (c == '<') {
-                                endIndex = i;
-                                break;
-                            }
-                        }
-                    }
-                    if (endIndex > index) {
-                        result = body.substring(index, endIndex) + Constant.DOWNLOAD_SUFFIX;
-                        LogUtil.logI(TAG, "getLastBuildUrl result: " + result);
-                        ApkInfo apkInfo = ApkInfoUtil.getApkInfo(result);
-                        long version = Utils.safeParseLong(apkInfo.version);
-                        if (version > curVersion) {
-                            //先指定测试包地址，到时去掉
-                            result = "http://repo.yypm.com/dwbuild/mobile/android/hiyo/hiyo-android_1.3.0_startup_monitor_feature/20180922-3482-rd8b11182cfbebe783ec5aa2e05b7f12498276866/hiyo.apk";
-                            Utils.safeEmitterSuccess(mUrlEmitter, result);
-                        } else {
-                            LogUtil.logI(TAG, "curVersion: %s  >=  version: %s", curVersion, version);
-                            Exception exception = new Exception("最新构建版本不高于现有版本");
-                            Utils.safeEmitterError(mUrlEmitter, exception);
-                        }
-                        return;
-                    }
-                }
-                String msg = "getLastBuildUrl result parse failed";
-                LogUtil.logI(TAG, msg);
-                Exception e = new Exception(msg);
-                Utils.safeEmitterError(mUrlEmitter, e);
-            }
-        });
-    }
-
-    private void downloadApk(final String url) {
-        Request request = new Request.Builder().url(url).build();
-        Call call = mOkHttpClient.newCall(request);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                LogUtil.logI(TAG, "downloadApk onFailure: " + e.getMessage());
-                Utils.safeEmitterError(mApkEmitter, e);
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                ApkInfo apkInfo = ApkInfoUtil.getApkInfo(url);
-                InputStream is = null;
-                byte[] buf = new byte[2048];
-                int len;
-                long total = response.body().contentLength();
-                apkInfo.size = total;
-                LogUtil.logD(TAG, "download apk total: %s", total);
-                FileOutputStream outputStream = null;
-                String savePath = Utils.getExternalDir();
-                int progress = 0;
-                try {
-                    is = response.body().byteStream();
-                    File file = new File(savePath, apkInfo.getApkName());
-                    outputStream = new FileOutputStream(file);
-                    long sum = 0;
-                    while ((len = is.read(buf)) != -1) {
-                        outputStream.write(buf, 0, len);
-                        sum += len;
-                        int p = (int) ((sum * 1.0f / total) * 100);
-                        if (p % 10 == 0 && p != progress) {
-                            progress = p;
-                            LogUtil.logD(TAG, "download apk progress: %s", progress);
-                        }
-                    }
-                    outputStream.flush();
-                    apkInfo.filePath = file.getPath();
-                    Utils.safeEmitterSuccess(mApkEmitter, apkInfo);
-                } catch (Exception e) {
-                    LogUtil.logE(TAG, "downloadApk exception", e);
-                    Utils.safeEmitterError(mApkEmitter, e);
-                } finally {
-                    if (is != null) {
-                        is.close();
-                    }
-                    if (outputStream != null) {
-                        outputStream.close();
-                    }
-                }
-            }
-        });
-    }
+    private Map<String, MaybeEmitter> mEmitterMap = new ConcurrentHashMap<>();
 
     /**
-     * 获取最新打包的下载地址
+     * 执行请求
+     * @param url
+     * @return
      */
-    public Maybe<String> getDownloadUrl(final long curVersion) {
-        LogUtil.logI(TAG, "start getDownloadUrl");
-        return Maybe.create(new MaybeOnSubscribe<String>() {
+    public Maybe<Response> execRequest(final String url) {
+        return Maybe.create(new MaybeOnSubscribe<Response>() {
             @Override
-            public void subscribe(MaybeEmitter<String> e) throws Exception {
-                mUrlEmitter = e;
-                getLastBuildUrl(curVersion);
+            public void subscribe(MaybeEmitter<Response> e) throws Exception {
+                if (TextUtils.isEmpty(url)) {
+                    Utils.safeEmitterError(e, new Exception("url is empty"));
+                    return;
+                }
+                mEmitterMap.put(url, e);
+                Request request = new Request.Builder().url(url).build();
+                Call call = mOkHttpClient.newCall(request);
+                call.enqueue(mResponseCallback);
             }
-        }).timeout(60, TimeUnit.SECONDS).doFinally(new Action() {
+        }).doFinally(new Action() {
             @Override
             public void run() throws Exception {
-                mUrlEmitter = null;
+                releaseEmitters();
             }
-        });
+        }).timeout(60, TimeUnit.SECONDS);
     }
 
-    public Maybe<ApkInfo> startDownloadApk(final String path) {
-        LogUtil.logI(TAG, "start getDownloadApk");
-        return Maybe.create(new MaybeOnSubscribe<ApkInfo>() {
-            @Override
-            public void subscribe(MaybeEmitter<ApkInfo> e) throws Exception {
-                mApkEmitter = e;
-                downloadApk(path);
+    private void releaseEmitters() {
+        if (mEmitterMap.size() == 0) {
+            return;
+        }
+        Iterator<Map.Entry<String, MaybeEmitter>> iterator = mEmitterMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, MaybeEmitter> entry = iterator.next();
+            if (entry.getValue() == null || entry.getValue().isDisposed()){
+                iterator.remove();
             }
-        }).timeout(60, TimeUnit.SECONDS).doFinally(new Action() {
-            @Override
-            public void run() throws Exception {
-                mApkEmitter = null;
-            }
-        });
+        }
     }
+
+    private Callback mResponseCallback = new Callback() {
+        @Override
+        public void onFailure(Call call, IOException e) {
+            String url = call.request().url().toString();
+            Utils.safeEmitterError(mEmitterMap.get(url), e);
+        }
+
+        @Override
+        public void onResponse(Call call, Response response) throws IOException {
+            String url = call.request().url().toString();
+            Utils.safeEmitterSuccess(mEmitterMap.get(url), response);
+        }
+    };
 }

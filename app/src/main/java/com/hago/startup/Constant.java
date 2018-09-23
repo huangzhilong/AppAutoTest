@@ -12,7 +12,6 @@ public class Constant {
     //关闭app
     //public final static String CMD_CLOSE_APP = "am force-stop com.yy.hiyo";  //目前对象app自己关闭
 
-
     public static final String GET_BUILD_URL = "https://ci.yy.com/jenkins2/view/android-app/job/hiyo-android/";
 
     //用于匹配最新构建的包地址
