@@ -14,6 +14,8 @@ public class Constant {
 
     public static final String GET_BUILD_URL = "https://ci.yy.com/jenkins2/view/android-app/job/hiyo-android/";
 
+    public static final String GET_ALL_BRANCH = "https://ci.yy.com/jenkins2/view/android-app/job/hiyo-android/descriptorByName/net.uaznia.lukanus.hudson.plugins.gitparameter.GitParameterDefinition/fillValueItems?param=DEV_LINE";
+
     //用于匹配最新构建的包地址
     public static final String MATCHER_LAST_BUILD_TAG = "http://repo.yypm.com/dwbuild/mobile/android/hiyo/";
 

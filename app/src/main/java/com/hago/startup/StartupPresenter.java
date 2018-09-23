@@ -7,7 +7,6 @@ import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.hago.startup.bean.ApkInfo;
@@ -22,7 +21,6 @@ import com.hago.startup.net.RequestCenter;
 import com.hago.startup.util.ApkInfoUtil;
 import com.hago.startup.util.CommonPref;
 import com.hago.startup.util.LogUtil;
-import com.hago.startup.net.OkHttpUtil;
 import com.hago.startup.util.TableUtil;
 import com.hago.startup.util.Utils;
 

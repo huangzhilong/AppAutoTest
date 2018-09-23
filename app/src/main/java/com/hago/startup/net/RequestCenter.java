@@ -8,10 +8,18 @@ import com.hago.startup.util.ApkInfoUtil;
 import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.Utils;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.reactivex.Maybe;
 import io.reactivex.annotations.NonNull;
@@ -145,5 +153,68 @@ public class RequestCenter {
                 }
             }
         }
+    }
+
+    /**
+     * 获取所有分支
+     * @return
+     */
+    public Maybe<List<String>> getAllBranch() {
+        return OkHttpUtil.getInstance().execRequest(Constant.GET_ALL_BRANCH)
+                .map(new Function<Response, List<String>>() {
+                    @Override
+                    public List<String> apply(Response response) throws Exception {
+                        String content = response.body().string();
+                        LogUtil.logD(TAG, "getAllBranch result: %s", content);
+                        if (TextUtils.isEmpty(content)) {
+                            return Collections.emptyList();
+                        }
+                        JSONObject jsonObject = new JSONObject(content);
+                        JSONArray jsonArray = jsonObject.getJSONArray("values");
+                        List<String> result = new ArrayList<>(jsonArray.length());
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject object = (JSONObject) jsonArray.get(i);
+                            String branch = object.getString("value");
+                            result.add(branch);
+                        }
+                        return result;
+                    }
+                });
+    }
+
+    /**
+     * 获取对应分支下的构建包
+     * @param branch
+     * @return
+     */
+    public Maybe<List<String>> getAllPackageByBranch(String branch) {
+        String url = Constant.MATCHER_LAST_BUILD_TAG + branch;
+        return OkHttpUtil.getInstance().execRequest(url)
+                .map(new Function<Response, List<String>>() {
+                    @Override
+                    public List<String> apply(Response response) throws Exception {
+                        String content = response.body().string();
+                        if (TextUtils.isEmpty(content)) {
+                            return Collections.emptyList();
+                        }
+                        String p = "title=\"";
+                        Pattern pattern = Pattern.compile(p);
+                        Matcher matcher = pattern.matcher(content);
+                        List<String> list = new ArrayList<>();
+                        while (matcher.find()) {
+                            int startIndex = matcher.start();
+                            StringBuilder stringBuilder = new StringBuilder();
+                            for (int i = startIndex + p.length(); i < content.length(); i++) {
+                                char c = content.charAt(i);
+                                if (c == '"') {
+                                    break;
+                                }
+                                stringBuilder.append(c);
+                            }
+                            list.add(stringBuilder.toString());
+                        }
+                        return list;
+                    }
+                });
     }
 }
