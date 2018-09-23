@@ -1,9 +1,12 @@
-package com.hago.startup.util;
+package com.hago.startup.net;
 
 import android.text.TextUtils;
 
 import com.hago.startup.Constant;
 import com.hago.startup.bean.ApkInfo;
+import com.hago.startup.util.ApkInfoUtil;
+import com.hago.startup.util.LogUtil;
+import com.hago.startup.util.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;

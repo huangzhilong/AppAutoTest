@@ -67,9 +67,9 @@ public enum NotificationCenter {
                 getAppStartTime(),
                 new BiFunction<StartAppInfo, StartCmdInfo, StartupInfo>() {
                     @Override
-                    public StartupInfo apply(StartAppInfo startupData, StartCmdInfo startupTime) throws Exception {
+                    public StartupInfo apply(StartAppInfo startAppInfo, StartCmdInfo startupTime) throws Exception {
                         StartupInfo startupInfo = new StartupInfo();
-                        startupInfo.mStartAppInfo = startupData;
+                        startupInfo.mStartAppInfo = startAppInfo;
                         startupInfo.mStartCmdInfo = startupTime;
                         return startupInfo;
                     }

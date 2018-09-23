@@ -42,6 +42,9 @@ public class MonitorInfo {
     @DatabaseField(columnName = "timestamp")
     public long timestamp; //当前时间
 
+    @DatabaseField(columnName = "isDebug")
+    public boolean isDebug; //当前包是否时debug包,因为release包性能会优于debug，需要区分
+
     @DatabaseField(columnName = "reserve1")
     public String reserve1; //保留字段未使用
 
@@ -51,11 +54,6 @@ public class MonitorInfo {
     @DatabaseField(columnName = "reserve3")
     public String reserve3; //保留字段未使用
 
-    @DatabaseField(columnName = "reserve4")
-    public String reserve4; //保留字段未使用
-
-    @DatabaseField(columnName = "reserve5")
-    public String reserve5; //保留字段未使用
 
     public MonitorInfo(ResultInfo resultInfo) {
         branch = resultInfo.mApkInfo.branch;
@@ -66,6 +64,7 @@ public class MonitorInfo {
         waitTime = resultInfo.mStartupInfo.mStartCmdInfo.waitTime;
         startTime = resultInfo.mStartupInfo.mStartAppInfo.startTime;
         startupMemory = resultInfo.mStartupInfo.mStartAppInfo.startupMemory;
+        isDebug = resultInfo.mStartupInfo.mStartAppInfo.isDebug;
         timestamp = System.currentTimeMillis();
     }
 
@@ -73,12 +72,13 @@ public class MonitorInfo {
         timestamp = System.currentTimeMillis();
     }
 
+
     @Override
     public String toString() {
         return "MonitorInfo{" +
                 "id=" + id +
                 ", branch='" + branch + '\'' +
-                ", version='" + version + '\'' +
+                ", version=" + version +
                 ", size=" + size +
                 ", thisTime=" + thisTime +
                 ", totalTime=" + totalTime +
@@ -86,11 +86,10 @@ public class MonitorInfo {
                 ", startTime=" + startTime +
                 ", startupMemory=" + startupMemory +
                 ", timestamp=" + timestamp +
+                ", isDebug=" + isDebug +
                 ", reserve1='" + reserve1 + '\'' +
                 ", reserve2='" + reserve2 + '\'' +
                 ", reserve3='" + reserve3 + '\'' +
-                ", reserve4='" + reserve4 + '\'' +
-                ", reserve5='" + reserve5 + '\'' +
                 '}';
     }
 }

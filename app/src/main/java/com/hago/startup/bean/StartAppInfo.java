@@ -13,11 +13,15 @@ public class StartAppInfo {
     //app启动10s后取次内存
     public int startupMemory;
 
+    //app是否是debug包
+    public boolean isDebug;
+
     @Override
     public String toString() {
         return "StartAppInfo{" +
                 "startTime=" + startTime +
                 ", startupMemory=" + startupMemory +
+                ", isDebug=" + isDebug +
                 '}';
     }
 }

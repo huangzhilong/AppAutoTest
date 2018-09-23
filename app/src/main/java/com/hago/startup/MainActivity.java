@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import com.hago.startup.db.DBHelper;
 import com.hago.startup.receiver.AppInstallReceiver;
-import com.hago.startup.receiver.StartupTimeReceiver;
+import com.hago.startup.receiver.StartAppReceiver;
 import com.hago.startup.util.Utils;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, IStartupView {
@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView tvStart;
     private TextView tvState;
     private TextView tvStep;
-    private StartupTimeReceiver mStartupTimeReceiver;
+    private StartAppReceiver mStartupTimeReceiver;
     private AppInstallReceiver mAppInstallReceiver;
     private StartupPresenter mStartupPresenter;
 
@@ -71,9 +71,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         installFilter.addDataScheme("package");
         registerReceiver(mAppInstallReceiver, installFilter);
 
-        mStartupTimeReceiver = new StartupTimeReceiver();
+        mStartupTimeReceiver = new StartAppReceiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(StartupTimeReceiver.ACTION);
+        filter.addAction(StartAppReceiver.ACTION);
         registerReceiver(mStartupTimeReceiver, filter);
     }
 

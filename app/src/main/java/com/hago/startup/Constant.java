@@ -10,7 +10,7 @@ public class Constant {
     public final static String CMD_START_APP = "am start --user 0 -W --ei cmdMonitor 1 com.yy.hiyo/.LaunchActivity";
 
     //关闭app
-    //public final static String CMD_CLOSE_APP = "am start force-stop com.yy.hiyo";  //这个关闭不了,目前对象app自己关闭
+    //public final static String CMD_CLOSE_APP = "am force-stop com.yy.hiyo";  //目前对象app自己关闭
 
 
     public static final String GET_BUILD_URL = "https://ci.yy.com/jenkins2/view/android-app/job/hiyo-android/";
@@ -33,11 +33,9 @@ public class Constant {
     public static final int START_COUNT = 4;
 
     //-----------SharedPreferences key
-
     public static final String MAIL_TIMESTAMP = "sendMailTimestamp"; //上次发送邮件的时间戳
     public static final String MAIL_DATE = "sendMailDate"; //上次发送邮件的日期
     public static final String MONITOR_VERSION = "monitorVersion"; //上次自动化的版本号
-
     //-------------------------
 
     //-----------邮箱相关

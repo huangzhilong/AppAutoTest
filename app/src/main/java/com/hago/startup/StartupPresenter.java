@@ -19,7 +19,7 @@ import com.hago.startup.mail.MailInfo;
 import com.hago.startup.mail.MailSender;
 import com.hago.startup.util.CommonPref;
 import com.hago.startup.util.LogUtil;
-import com.hago.startup.util.OkHttpUtil;
+import com.hago.startup.net.OkHttpUtil;
 import com.hago.startup.util.TableUtil;
 import com.hago.startup.util.Utils;
 

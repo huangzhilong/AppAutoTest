@@ -13,9 +13,9 @@ import com.hago.startup.bean.StartAppInfo;
  * 用于接收hago代码检测的启动时间
  */
 
-public class StartupTimeReceiver extends BroadcastReceiver {
+public class StartAppReceiver extends BroadcastReceiver {
 
-    private static final String TAG = "StartupTimeReceiver";
+    private static final String TAG = "StartAppReceiver";
     public final static String ACTION = "com.yy.hiyo.startup.broadcast";
 
     @Override
@@ -23,10 +23,12 @@ public class StartupTimeReceiver extends BroadcastReceiver {
         if (ACTION.equals(intent.getAction())) {
             long startTime = intent.getLongExtra("startupTime", 0);
             int memory = intent.getIntExtra("startupMemory", 0);
+            boolean isDebug = intent.getBooleanExtra("isDebug", true);
             StartAppInfo startAppInfo = new StartAppInfo();
             startAppInfo.startTime = startTime;
             startAppInfo.startupMemory = memory;
-            LogUtil.logI(TAG, "startupData: %s", startAppInfo);
+            startAppInfo.isDebug = isDebug;
+            LogUtil.logI(TAG, "startAppInfo: %s", startAppInfo);
             NotificationCenter.INSTANCE.emitterStartInfo(startAppInfo);
         }
     }
