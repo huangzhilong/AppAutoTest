@@ -11,4 +11,8 @@ public interface IStartupView {
     void updateAccessibilityStateView(boolean open, SpannableString spannableString);
 
     void updateStepView(String text);
+
+    void updateApkView(String text);
+
+    void showOpenAccessibilityTipDialog();
 }

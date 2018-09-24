@@ -67,7 +67,18 @@ public class StartupPresenter {
         CommonPref.INSTANCE.init(mContext);
     }
 
+    public void startTargetMonitor() {
+        if (!accessibility) {
+            mView.showOpenAccessibilityTipDialog();
+            return;
+        }
+    }
+
     public void timerStartMonitor() {
+        if (!accessibility) {
+            mView.showOpenAccessibilityTipDialog();
+            return;
+        }
         mCurVersion = CommonPref.INSTANCE.getLong(Constant.MONITOR_VERSION);
         LogUtil.logI(TAG, "get mCurVersion: %s", mCurVersion);
         MonitorTaskInstance.getInstance().postToMainThread(mRunnable);
@@ -156,6 +167,7 @@ public class StartupPresenter {
                     public MaybeSource<Boolean> apply(ApkInfo s) throws Exception {
                         mApkInfo = s;
                         //安装
+                        mView.updateApkView("测试包：" + mApkInfo.version);
                         mView.updateStepView(String.format(stepTxt, "安装apk中....."));
                         return NotificationCenter.INSTANCE.getInstall(s.filePath, mContext);
                     }

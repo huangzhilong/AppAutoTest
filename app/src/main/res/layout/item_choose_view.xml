@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="30dp">
+
+    <TextView
+        android:id="@+id/tv_delete"
+        android:text="删除"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:gravity="center_vertical"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:layout_marginLeft="20dp"
+        android:singleLine="true"
+        tools:text="hhfhhfhhfhfhfhfhfhhfhfhhfhfh"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@id/tv_delete"
+        android:id="@+id/tv_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</RelativeLayout>

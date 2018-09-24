@@ -5,8 +5,11 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.accessibility.AccessibilityManager;
 
 import com.hago.startup.Constant;
@@ -106,5 +109,21 @@ public class Utils {
             return;
         }
         emitter.onError(throwable);
+    }
+
+    public static int convertDpToPixel(int dp, Context context) {
+        try {
+            if (context == null) {
+                return dp;
+            }
+            Resources resources = context.getResources();
+            DisplayMetrics metrics = resources.getDisplayMetrics();
+            float px = dp * (metrics.densityDpi / 160f);
+            return (int)px;
+        } catch (Exception ex) {
+            Log.e("ResolutionUtils", "Empty Catch on convertDpToPixel", ex);
+        }
+
+        return dp;
     }
 }

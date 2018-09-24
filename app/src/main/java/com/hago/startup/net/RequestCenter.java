@@ -35,6 +35,7 @@ public class RequestCenter {
 
     private static final String TAG = "RequestCenter";
     private static final RequestCenter ourInstance = new RequestCenter();
+    private static final String BRANCH_TAG = "origin/";
 
     public static RequestCenter getInstance() {
         return ourInstance;
@@ -175,6 +176,10 @@ public class RequestCenter {
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject object = (JSONObject) jsonArray.get(i);
                             String branch = object.getString("value");
+                            //去掉origin/
+                            if (branch.startsWith(BRANCH_TAG)) {
+                                branch = branch.substring(BRANCH_TAG.length());
+                            }
                             result.add(branch);
                         }
                         return result;
