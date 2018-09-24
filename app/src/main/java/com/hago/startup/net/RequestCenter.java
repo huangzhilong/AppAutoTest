@@ -157,10 +157,10 @@ public class RequestCenter {
     }
 
     /**
-     * 获取所有分支
+     * 获取所有分支，通过接口，发现这个无法不适和使用，因为正式包找不到
      * @return
      */
-    public Maybe<List<String>> getAllBranch() {
+    public Maybe<List<String>> getAllBranchByUrl() {
         return OkHttpUtil.getInstance().execRequest(Constant.GET_ALL_BRANCH)
                 .map(new Function<Response, List<String>>() {
                     @Override
@@ -183,6 +183,40 @@ public class RequestCenter {
                             result.add(branch);
                         }
                         return result;
+                    }
+                });
+    }
+
+    /**
+     * 获取所有分支，html页面解析
+     * @return
+     */
+    public Maybe<List<String>> getAllBranchByPage() {
+        return OkHttpUtil.getInstance().execRequest(Constant.MATCHER_LAST_BUILD_TAG)
+                .map(new Function<Response, List<String>>() {
+                    @Override
+                    public List<String> apply(Response response) throws Exception {
+                        String content = response.body().string();
+                        if (TextUtils.isEmpty(content)) {
+                            return Collections.emptyList();
+                        }
+                        String p = "title=\"";
+                        Pattern pattern = Pattern.compile(p);
+                        Matcher matcher = pattern.matcher(content);
+                        List<String> list = new ArrayList<>();
+                        while (matcher.find()) {
+                            int startIndex = matcher.start();
+                            StringBuilder stringBuilder = new StringBuilder();
+                            for (int i = startIndex + p.length(); i < content.length(); i++) {
+                                char c = content.charAt(i);
+                                if (c == '"') {
+                                    break;
+                                }
+                                stringBuilder.append(c);
+                            }
+                            list.add(stringBuilder.toString());
+                        }
+                        return list;
                     }
                 });
     }

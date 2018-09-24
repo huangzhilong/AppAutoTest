@@ -6,7 +6,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.hago.startup.R;
 import com.hago.startup.util.Utils;
@@ -18,45 +17,34 @@ import java.util.List;
  * Created by huangzhilong on 18/9/24.
  */
 
-public class ChooseViewAdapter extends RecyclerView.Adapter<ChooseViewAdapter.ChooseHolder>{
+public class ChooseListAdapter extends RecyclerView.Adapter<ChooseHolder>{
 
     private List<String> data = new ArrayList<>();
-    private boolean isResult;
-    private boolean isVersion;
-    private Context mContext;
 
+    private boolean isVersion;
     private LayoutInflater mInflater;
 
     private ChooseApkView.onItemClick mOnItemClick;
+    public final static String BACK = "返回上一级";
 
     public void setOnItemClick(ChooseApkView.onItemClick onItemClick) {
         mOnItemClick = onItemClick;
     }
 
-    public ChooseViewAdapter(Context context, boolean isResult) {
-        mContext = context;
-        this.isResult = isResult;
+    public ChooseListAdapter(Context context) {
         mInflater = LayoutInflater.from(context);
     }
 
     public void setData(List<String> list, boolean version) {
         data.clear();
         if (!Utils.empty(list)) {
+            if (version) {
+                data.add(BACK);
+            }
             data.addAll(list);
         }
         isVersion = version;
         notifyDataSetChanged();
-    }
-
-    public void addData(String branch) {
-        if (!data.contains(branch)) {
-            data.add(branch);
-            notifyDataSetChanged();
-        }
-    }
-
-    public List<String> getData() {
-        return data;
     }
 
     @NonNull
@@ -81,18 +69,10 @@ public class ChooseViewAdapter extends RecyclerView.Adapter<ChooseViewAdapter.Ch
         String text = data.get(position);
         holder.tvText.setText(text);
         holder.itemView.setTag(text);
-        if (isResult) {
-            holder.tvDelete.setVisibility(View.VISIBLE);
-            holder.tvDelete.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    data.remove(position);
-                    notifyDataSetChanged();
-                }
-            });
-        } else {
+        if (holder.tvDelete.getVisibility() != View.GONE) {
             holder.tvDelete.setVisibility(View.GONE);
         }
+
     }
 
     @Override
@@ -100,16 +80,4 @@ public class ChooseViewAdapter extends RecyclerView.Adapter<ChooseViewAdapter.Ch
         return data == null ? 0 : data.size();
     }
 
-    public class ChooseHolder extends RecyclerView.ViewHolder {
-
-        public TextView tvText;
-
-        public TextView tvDelete;
-
-        public ChooseHolder(View itemView) {
-            super(itemView);
-            tvDelete = itemView.findViewById(R.id.tv_delete);
-            tvText = itemView.findViewById(R.id.tv_text);
-        }
-    }
 }

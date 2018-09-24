@@ -8,8 +8,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.hago.startup.R;
+import com.hago.startup.bean.ApkInfo;
+import com.hago.startup.util.Utils;
+import com.hago.startup.widget.DialogManager;
 
 import java.util.List;
 
@@ -21,10 +25,17 @@ public class ChooseApkView extends RelativeLayout implements View.OnClickListene
 
     private RecyclerView mListRecyclerView;
     private RecyclerView mResultRecyclerView;
-    private ChooseViewAdapter mListAdapter;
-    private ChooseViewAdapter mResultAdapter;
+    private ChooseListAdapter mListAdapter;
+    private ChooseResultAdapter mResultAdapter;
     private TextView tvCancel, tvOK;
+    private TextView tvText;
     private ChooseViewPresenter mChooseViewPresenter;
+
+    private DialogManager.ChooseDialogListener mListener;
+
+    public void setListener(DialogManager.ChooseDialogListener listener) {
+        mListener = listener;
+    }
 
     public ChooseApkView(Context context) {
         this(context, null);
@@ -42,6 +53,7 @@ public class ChooseApkView extends RelativeLayout implements View.OnClickListene
         mResultRecyclerView = findViewById(R.id.rcy_select);
         tvCancel = findViewById(R.id.btn_cancel);
         tvOK = findViewById(R.id.btn_ok);
+        tvText= findViewById(R.id.tv_text);
         tvOK.setOnClickListener(this);
         tvCancel.setOnClickListener(this);
 
@@ -49,7 +61,7 @@ public class ChooseApkView extends RelativeLayout implements View.OnClickListene
         mListLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mListRecyclerView.setLayoutManager(mListLinearLayoutManager);
         mListRecyclerView.setHasFixedSize(true);
-        mListAdapter = new ChooseViewAdapter(context, false);
+        mListAdapter = new ChooseListAdapter(context);
         mListRecyclerView.setAdapter(mListAdapter);
         mListAdapter.setOnItemClick(new onItemClick() {
             @Override
@@ -57,8 +69,13 @@ public class ChooseApkView extends RelativeLayout implements View.OnClickListene
                 if (!isVersion) {
                     mChooseViewPresenter.getVersionByBranch(data);
                 } else {
+                    if (ChooseListAdapter.BACK.equals(data)) {
+                        mChooseViewPresenter.backBranchList();
+                        return;
+                    }
                     //选择这个版本
-                    mResultAdapter.addData(data);
+                    String branch = mChooseViewPresenter.getCurBranch();
+                    mResultAdapter.addData(branch, data);
                 }
             }
         });
@@ -67,30 +84,46 @@ public class ChooseApkView extends RelativeLayout implements View.OnClickListene
         mResultLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mResultRecyclerView.setLayoutManager(mResultLinearLayoutManager);
         mResultRecyclerView.setHasFixedSize(true);
-        mResultAdapter = new ChooseViewAdapter(context, true);
+        mResultAdapter = new ChooseResultAdapter(context);
         mResultRecyclerView.setAdapter(mResultAdapter);
     }
 
     @Override
     public void updateBranchView(List<String> branch) {
+        tvText.setText("请选择分支");
         mListAdapter.setData(branch, false);
     }
 
     @Override
     public void updateApkVersionView(List<String> version) {
+        tvText.setText("请选择版本号");
         mListAdapter.setData(version,  true);
     }
 
     @Override
     public void onClick(View v) {
+        if (mListener == null) {
+            return;
+        }
         if (v == tvOK) {
-
+            List<ApkInfo> results = mResultAdapter.getData();
+            if (Utils.empty(results)) {
+                Toast.makeText(getContext(), "选择不能为空!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            mListener.ok(results);
         } else if (v == tvCancel) {
-
+            mListener.onCancel();
         }
     }
 
     public interface onItemClick {
         void onClick(String data, boolean version);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mChooseViewPresenter.release();
     }
 }

@@ -26,6 +26,7 @@ public class ChooseViewPresenter {
     private Context mContext;
 
     private List<String> branch;
+    private String mCurBranch;
     private HashMap<String, List<String>> mData = new HashMap<>();
     private Disposable mBranchDisposable, mVersionDisposable;
 
@@ -36,7 +37,7 @@ public class ChooseViewPresenter {
     }
 
     private void initData() {
-        mBranchDisposable = RequestCenter.getInstance().getAllBranch()
+        mBranchDisposable = RequestCenter.getInstance().getAllBranchByPage()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<List<String>>() {
                     @Override
@@ -53,10 +54,19 @@ public class ChooseViewPresenter {
                 });
     }
 
-    public void getVersionByBranch(final String branch) {
+    public void backBranchList() {
+        mIChooseView.updateBranchView(branch);
+    }
+
+    public String getCurBranch() {
+        return mCurBranch;
+    }
+
+    public void getVersionByBranch(String branch) {
+        mCurBranch = branch;
         List<String> result = mData.get(branch);
         if (!Utils.empty(result)) {
-            LogUtil.logD(TAG, "getVersionByBranch by cache");
+            LogUtil.logD(TAG, "getVersionByBranch by cache branch: %s", mCurBranch);
             mIChooseView.updateApkVersionView(result);
             return;
         }
@@ -65,13 +75,13 @@ public class ChooseViewPresenter {
                 .subscribe(new Consumer<List<String>>() {
                     @Override
                     public void accept(@NonNull List<String> list) throws Exception {
-                        mData.put(branch, list);
+                        mData.put(mCurBranch, list);
                         mIChooseView.updateApkVersionView(list);
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
-                        LogUtil.logE(TAG, "getVersionByBranch branch: %s failed: %s", branch, throwable);
+                        LogUtil.logE(TAG, "getVersionByBranch branch: %s failed: %s", mCurBranch, throwable);
                         Toast.makeText(mContext, "获取数据失败", Toast.LENGTH_LONG).show();
                     }
                 });

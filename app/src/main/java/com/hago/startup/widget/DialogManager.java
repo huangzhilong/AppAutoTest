@@ -11,8 +11,11 @@ import android.view.Window;
 import android.widget.TextView;
 
 import com.hago.startup.R;
+import com.hago.startup.bean.ApkInfo;
+import com.hago.startup.widget.chooseApk.ChooseApkView;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 /**
  * Created by huangzhilong on 18/9/24.
@@ -129,7 +132,7 @@ public class DialogManager {
         });
     }
 
-    public void showChooseApkVersionDialog() {
+    public void showChooseApkVersionDialog(final ChooseDialogListener l) {
         if (!checkActivityValid()) {
             return;
         }
@@ -143,6 +146,24 @@ public class DialogManager {
         mDialog.show();
         Window window = mDialog.getWindow();
         window.setContentView(R.layout.layout_choose_view_dialog);
+        ChooseApkView view = window.findViewById(R.id.choose_view);
+        view.setListener(new ChooseDialogListener() {
+            @Override
+            public void onCancel() {
+                mDialog.dismiss();
+                if (l != null) {
+                    l.onCancel();
+                }
+            }
+
+            @Override
+            public void ok(List<ApkInfo> results) {
+                mDialog.dismiss();
+                if (l != null) {
+                    l.ok(results);
+                }
+            }
+        });
     }
 
     public interface OkCancelDialogListener {
@@ -153,4 +174,10 @@ public class DialogManager {
     }
 
 
+    public interface ChooseDialogListener {
+
+        void onCancel();
+
+        void ok(List<ApkInfo> results);
+    }
 }

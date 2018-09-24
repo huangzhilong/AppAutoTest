@@ -10,11 +10,15 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.hago.startup.bean.ApkInfo;
 import com.hago.startup.db.DBHelper;
 import com.hago.startup.receiver.AppInstallReceiver;
 import com.hago.startup.receiver.StartAppReceiver;
+import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.Utils;
 import com.hago.startup.widget.DialogManager;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, IStartupView {
 
@@ -127,7 +131,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         if (v == tvTarget) {
             //mStartupPresenter.startTargetMonitor();
-            getDialogManager().showChooseApkVersionDialog();
+            getDialogManager().showChooseApkVersionDialog(new DialogManager.ChooseDialogListener() {
+                @Override
+                public void onCancel() {
+
+                }
+
+                @Override
+                public void ok(List<ApkInfo> results) {
+                    LogUtil.logD(TAG, "showChooseApkVersionDialog : %s", results);
+                }
+            });
         } else if (v == tvState) {
             mStartupPresenter.openAccessibilityService();
         } else if (v == tvStart) {
