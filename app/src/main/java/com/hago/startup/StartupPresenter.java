@@ -23,6 +23,7 @@ import com.hago.startup.util.CommonPref;
 import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.TableUtil;
 import com.hago.startup.util.Utils;
+import com.hago.startup.widget.DialogManager;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -72,6 +73,20 @@ public class StartupPresenter {
             mView.showOpenAccessibilityTipDialog();
             return;
         }
+        //停止在进行的自动化
+        release();
+        MonitorTaskInstance.getInstance().clearMainThreadMsg();
+        mView.showChooseApkVersionDialog(new DialogManager.ChooseDialogListener() {
+            @Override
+            public void onCancel() {
+
+            }
+
+            @Override
+            public void ok(List<ApkInfo> results) {
+                LogUtil.logD(TAG, "showChooseApkVersionDialog result: %s", results);
+            }
+        });
     }
 
     public void timerStartMonitor() {
@@ -130,13 +145,13 @@ public class StartupPresenter {
      */
     public void startMonitor(final boolean target) {
         clearData();
-        mView.updateStepView(String.format(stepTxt, "检测卸载已安装的hago"));
+        mView.updateStepView("卸载已安装的hago");
         mStartDisposable = NotificationCenter.INSTANCE.unInstall(mContext)
                 .flatMap(new Function<Boolean, MaybeSource<String>>() {
                     @Override
                     public MaybeSource<String> apply(Boolean aBoolean) throws Exception {
                         //获取最新构建包地址
-                        mView.updateStepView(String.format(stepTxt, "获取最新包地址"));
+                        mView.updateStepView("获取apk下载地址");
                         return RequestCenter.getInstance().getNewestApkUrl();
                     }
                 }).filter(new Predicate<String>() {
@@ -150,15 +165,16 @@ public class StartupPresenter {
                         long version = Utils.safeParseLong(apkInfo.version);
                         boolean result = version > mCurVersion;
                         if (!result) {
+                            mView.updateStepView("最新构建版本不高于已测试版本");
                             LogUtil.logI(TAG, "最新构建版本不高于已测试版本 version: %s  curVersion: %s", version, mCurVersion);
                         }
-                        return result;
+                        return true;
                     }
                 }).flatMap(new Function<String, MaybeSource<ApkInfo>>() {
                     @Override
                     public MaybeSource<ApkInfo> apply(String s) throws Exception {
                         //下载
-                        mView.updateStepView(String.format(stepTxt, "下载apk中....."));
+                        mView.updateStepView("下载apk中.....");
                         return RequestCenter.getInstance().startDownloadApk(s);
                     }
                 }).delay(1, TimeUnit.SECONDS)
@@ -168,32 +184,32 @@ public class StartupPresenter {
                         mApkInfo = s;
                         //安装
                         mView.updateApkView("测试包：" + mApkInfo.version);
-                        mView.updateStepView(String.format(stepTxt, "安装apk中....."));
+                        mView.updateStepView("安装apk中.....");
                         return NotificationCenter.INSTANCE.getInstall(s.filePath, mContext);
                     }
                 }).delay(2, TimeUnit.SECONDS)
                 .flatMap(new Function<Boolean, MaybeSource<List<StartupInfo>>>() {
                     @Override
                     public MaybeSource<List<StartupInfo>> apply(Boolean aBoolean) throws Exception {
-                        mView.updateStepView(String.format(stepTxt, "启动获取app数据中....."));
+                        mView.updateStepView("启动获取app数据中.....");
                         return NotificationCenter.INSTANCE.getStartResult(Constant.START_COUNT);
                     }
                 }).map(new Function<List<StartupInfo>, ResultInfo>() {
                     @Override
                     public ResultInfo apply(List<StartupInfo> result) throws Exception {
-                        mView.updateStepView(String.format(stepTxt, "结果处理中....."));
+                        mView.updateStepView("结果处理中.....");
                         return handlerResult(result);
                     }
                 }).flatMap(new Function<ResultInfo, MaybeSource<Boolean>>() {
                     @Override
                     public MaybeSource<Boolean> apply(ResultInfo resultInfo) throws Exception {
-                        mView.updateStepView(String.format(stepTxt, "数据存储....."));
+                        mView.updateStepView("数据存储.....");
                         return storeResult(resultInfo);
                     }
                 }).flatMap(new Function<Boolean, MaybeSource<Boolean>>() {
                     @Override
                     public MaybeSource<Boolean> apply(Boolean aBoolean) throws Exception {
-                        mView.updateStepView(String.format(stepTxt, "发送邮件....."));
+                        mView.updateStepView("发送邮件.....");
                         return sendToMail();
                     }
                 }).subscribe(new Consumer<Boolean>() {

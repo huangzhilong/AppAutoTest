@@ -48,4 +48,11 @@ public class MonitorTaskInstance {
         }
         mMainHandler.postDelayed(runnable, delay);
     }
+
+    /**
+     * 清楚消息
+     */
+    public void clearMainThreadMsg() {
+        mMainHandler.removeCallbacksAndMessages(null);
+    }
 }

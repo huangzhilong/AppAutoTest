@@ -97,6 +97,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    @Override
+    public void showChooseApkVersionDialog(DialogManager.ChooseDialogListener listener) {
+        getDialogManager().showChooseApkVersionDialog(listener);
+    }
+
     private DialogManager getDialogManager() {
         if (mDialogManager == null) {
             mDialogManager = new DialogManager(this);
@@ -130,18 +135,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if (v == tvTarget) {
-            //mStartupPresenter.startTargetMonitor();
-            getDialogManager().showChooseApkVersionDialog(new DialogManager.ChooseDialogListener() {
-                @Override
-                public void onCancel() {
-
-                }
-
-                @Override
-                public void ok(List<ApkInfo> results) {
-                    LogUtil.logD(TAG, "showChooseApkVersionDialog : %s", results);
-                }
-            });
+            mStartupPresenter.startTargetMonitor();
         } else if (v == tvState) {
             mStartupPresenter.openAccessibilityService();
         } else if (v == tvStart) {
