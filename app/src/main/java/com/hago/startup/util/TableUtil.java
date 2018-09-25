@@ -107,6 +107,13 @@ public class TableUtil {
                     } else {
                         stringBuffer.append(field.get(info));
                     }
+                    //包大小转为M
+                    if (mFieldsOrder[j].equals("size") && field.get(info) instanceof Long) {
+                        float size= ((Long) field.get(info)) / (1024 * 1024.0f);
+                        stringBuffer.append(size + "M");
+                    } else {
+                        stringBuffer.append(field.get(info) + "B");
+                    }
                     stringBuffer.append(TABLE_TD_END);
                 } catch (NoSuchFieldException e) {
                     LogUtil.logI(TAG, "getField NoSuchField: %s", mFieldsOrder[j]);
