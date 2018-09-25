@@ -31,14 +31,14 @@ public class TableUtil {
 
     private final static String[] mFieldsOrder = {"version", "isDebug", DATA, "branch", "size"};
 
-    private final static String[] mDataFields = {"totalTime", "startTime", "startupMemory", "timestamp"};
-
     public static String createMailTableText(List<ResultInfo> result) {
         if (Utils.empty(result)) {
             LogUtil.logI(TAG, "createMailTableText result is empty");
             return "result is empty";
         }
         StringBuffer stringBuffer = new StringBuffer();
+        //说明
+        stringBuffer.append(addInstruction());
         stringBuffer.append(TABLE_START);
         //表头
         stringBuffer.append(createTableHead());
@@ -111,15 +111,19 @@ public class TableUtil {
 
             //测试结果
             for (int j = 0; j < Constant.START_COUNT - 1; j++) {
+                stringBuffer.append(TABLE_TD_START);
                 MonitorInfo monitorInfo = safeGetMonitor(info.mMonitorInfoList, j);
                 StringBuilder monitorBuilder = new StringBuilder();
-                monitorBuilder.append("adb启动时间: " + monitorInfo == null ? 0 : monitorInfo.totalTime);
+                monitorBuilder.append("totalTime: ");
+                monitorBuilder.append(monitorInfo == null ? 0 : monitorInfo.totalTime);
                 monitorBuilder.append(TABLE_NEW_LINE);
-                monitorBuilder.append("app计算启动时间: " + monitorInfo == null ? 0 : monitorInfo.startTime);
+                monitorBuilder.append("startTime: ");
+                monitorBuilder.append(monitorInfo == null ? 0 : monitorInfo.startTime);
                 monitorBuilder.append(TABLE_NEW_LINE);
-                monitorBuilder.append("app启动内存: " + monitorInfo == null ? 0 : monitorInfo.startupMemory);
+                monitorBuilder.append("startMemory: ");
+                monitorBuilder.append(monitorInfo == null ? 0 : monitorInfo.startupMemory);
                 monitorBuilder.append(TABLE_NEW_LINE);
-                monitorBuilder.append("测试时间: ");
+                monitorBuilder.append("time: ");
                 long timestamp = monitorInfo == null ? 0 : monitorInfo.timestamp;
                 if(timestamp == 0) {
                     monitorBuilder.append(timestamp);
@@ -127,6 +131,9 @@ public class TableUtil {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     monitorBuilder.append(dateFormat.format(new Date(timestamp)));
                 }
+                String str = monitorBuilder.toString();
+                stringBuffer.append(str);
+                stringBuffer.append(TABLE_TD_END);
             }
 
             //分支
@@ -151,5 +158,27 @@ public class TableUtil {
             return null;
         }
         return list.get(index);
+    }
+
+    private static String addInstruction() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<h2>统计方式</h2>");
+        stringBuilder.append("用adb启动hago获取启动时间。自动登入进入首页，代码计算获取启动时间，等待10秒获取当前app内存，结束app并返回app启动时间和内存。并去除刚安装第一次app启动结果！");
+        stringBuilder.append("<h2>参数</h2>");
+        stringBuilder.append("totalTime: ");
+        stringBuilder.append("adb启动时间");
+        stringBuilder.append(TABLE_NEW_LINE);
+        stringBuilder.append("startTime: ");
+        stringBuilder.append("app计算的启动时间");
+        stringBuilder.append(TABLE_NEW_LINE);
+        stringBuilder.append("startMemory: ");
+        stringBuilder.append("app启动内存");
+        stringBuilder.append(TABLE_NEW_LINE);
+        stringBuilder.append("time: ");
+        stringBuilder.append("测试时间");
+        stringBuilder.append(TABLE_NEW_LINE);
+        stringBuilder.append(TABLE_NEW_LINE);
+        stringBuilder.append(TABLE_NEW_LINE);
+        return stringBuilder.toString();
     }
 }
