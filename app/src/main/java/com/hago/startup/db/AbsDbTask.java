@@ -1,8 +1,5 @@
 package com.hago.startup.db;
 
-import android.content.Context;
-
-import com.hago.startup.MonitorTaskInstance;
 import com.hago.startup.ICallback;
 
 /**
@@ -14,7 +11,7 @@ public abstract class AbsDbTask<T> implements Runnable {
     protected ICallback<T> mCallback;
     protected int retryTime = 1; //失败自动重试一次
 
-    public AbsDbTask(ICallback<T> callback) {
+    public void setCallback(ICallback<T> callback) {
         mCallback = callback;
     }
 
@@ -37,26 +34,16 @@ public abstract class AbsDbTask<T> implements Runnable {
         }
     }
 
-    //回调应该回到主线程
     protected void handleSuccess(final T data) {
-        MonitorTaskInstance.getInstance().postToMainThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mCallback != null) {
-                    mCallback.onSuccess(data);
-                }
-            }
-        });
+        if (mCallback != null) {
+            mCallback.onSuccess(data);
+        }
     }
 
     protected void handleFailed(final Exception e) {
-        MonitorTaskInstance.getInstance().postToMainThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mCallback != null) {
-                    mCallback.onFailed(e.getMessage());
-                }
-            }
-        });
+        if (mCallback != null) {
+            mCallback.onFailed(e.getMessage());
+        }
     }
+
 }

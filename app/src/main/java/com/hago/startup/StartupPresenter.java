@@ -10,11 +10,10 @@ import android.text.style.ForegroundColorSpan;
 import android.widget.Toast;
 
 import com.hago.startup.bean.ApkInfo;
-import com.hago.startup.bean.ResultInfo;
 import com.hago.startup.bean.StartupInfo;
-import com.hago.startup.db.InsertResultTask;
-import com.hago.startup.db.MonitorInfo;
-import com.hago.startup.db.SearchResultTask;
+import com.hago.startup.db.DBCenter;
+import com.hago.startup.db.bean.MonitorInfo;
+import com.hago.startup.db.bean.ResultInfo;
 import com.hago.startup.mail.MailInfo;
 import com.hago.startup.mail.MailSender;
 import com.hago.startup.net.RequestCenter;
@@ -26,7 +25,6 @@ import com.hago.startup.util.Utils;
 import com.hago.startup.widget.DialogManager;
 
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -141,12 +139,13 @@ public class StartupPresenter {
     //卸载－>下载－>安装 －> 启动app -> 结果插入数据库 —> 邮件
     /**
      * 开始自动化测试
+     *
      * @param target 是否指定了测试版本
      */
     public void startMonitor(final boolean target) {
         clearData();
         mView.updateStepView("卸载已安装的hago");
-        mStartDisposable = NotificationCenter.INSTANCE.unInstall(mContext)
+        NotificationCenter.INSTANCE.unInstall(mContext)
                 .flatMap(new Function<Boolean, MaybeSource<String>>() {
                     @Override
                     public MaybeSource<String> apply(Boolean aBoolean) throws Exception {
@@ -194,28 +193,34 @@ public class StartupPresenter {
                         mView.updateStepView("启动获取app数据中.....");
                         return NotificationCenter.INSTANCE.getStartResult(Constant.START_COUNT);
                     }
-                }).map(new Function<List<StartupInfo>, ResultInfo>() {
+                }).map(new Function<List<StartupInfo>, List<StartupInfo>>() {
                     @Override
-                    public ResultInfo apply(List<StartupInfo> result) throws Exception {
+                    public List<StartupInfo> apply(List<StartupInfo> result) throws Exception {
                         mView.updateStepView("结果处理中.....");
                         return handlerResult(result);
                     }
-                }).flatMap(new Function<ResultInfo, MaybeSource<Boolean>>() {
+                }).flatMap(new Function<List<StartupInfo>, MaybeSource<Integer>>() {
                     @Override
-                    public MaybeSource<Boolean> apply(ResultInfo resultInfo) throws Exception {
+                    public MaybeSource<Integer> apply(List<StartupInfo> resultInfo) throws Exception {
                         mView.updateStepView("数据存储.....");
-                        return storeResult(resultInfo);
+                        return DBCenter.getInstance().insertResult(mApkInfo, resultInfo);
                     }
-                }).flatMap(new Function<Boolean, MaybeSource<Boolean>>() {
+                }).filter(new Predicate<Integer>() {
                     @Override
-                    public MaybeSource<Boolean> apply(Boolean aBoolean) throws Exception {
+                    public boolean test(Integer integer) throws Exception {
+                        //判断是否需要邮件
+                        return judgeNeedMail();
+                    }
+                }).flatMap(new Function<Integer, MaybeSource<Boolean>>() {
+                    @Override
+                    public MaybeSource<Boolean> apply(Integer integer) throws Exception {
                         mView.updateStepView("发送邮件.....");
                         return sendToMail();
                     }
                 }).subscribe(new Consumer<Boolean>() {
                     @Override
                     public void accept(@NonNull Boolean results) throws Exception {
-                        LogUtil.logI(TAG, "startMonitor completed!");
+                        LogUtil.logI(TAG, "startMonitor completed! send mail result: %s", results);
                         mView.updateStepView("测试完成");
                     }
                 }, new Consumer<Throwable>() {
@@ -228,70 +233,31 @@ public class StartupPresenter {
     }
 
     //去掉第一次启动数据，在取平均
-    private ResultInfo handlerResult(List<StartupInfo> mResultList) {
+    private List<StartupInfo> handlerResult(List<StartupInfo> mResultList) {
         mView.updateStepView(String.format(stepTxt, "结果处理...."));
         //去除第一次启动app数据
         mResultList.remove(0);
-        //求平均
-        StartupInfo info = mResultList.get(0);
-        for (int i = 1; i < mResultList.size(); i++) {
-            info.mStartCmdInfo.totalTime += mResultList.get(i).mStartCmdInfo.totalTime;
-            info.mStartCmdInfo.waitTime += mResultList.get(i).mStartCmdInfo.waitTime;
-            info.mStartCmdInfo.thisTime += mResultList.get(i).mStartCmdInfo.thisTime;
-            info.mStartAppInfo.startupMemory += mResultList.get(i).mStartAppInfo.startupMemory;
-            info.mStartAppInfo.startTime += mResultList.get(i).mStartAppInfo.startTime;
+        LogUtil.logI(TAG, "handlerResult: %s", mResultList);
+        return mResultList;
+    }
+
+    private boolean judgeNeedMail() {
+        long timestamp = CommonPref.INSTANCE.getLong(Constant.MAIL_TIMESTAMP);
+        String date = CommonPref.INSTANCE.getString(Constant.MAIL_DATE);
+        //获取当前时间
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH) + 1; //0开始算
+        int day = calendar.get(Calendar.DATE);
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        final String today = year + "-" + month + "-" + day;
+        LogUtil.logI(TAG, "sendMail timestamp: %s date: %s today: %s  hour: %s", timestamp, date, today, hour);
+        if (!today.equals(date) && hour > Constant.SEND_MAIL_TIME) {
+            return true;
+        } else {
+            return false;
         }
-        info.mStartCmdInfo.totalTime /= mResultList.size();
-        info.mStartCmdInfo.waitTime /= mResultList.size();
-        info.mStartCmdInfo.thisTime /= mResultList.size();
-        info.mStartAppInfo.startupMemory /= mResultList.size();
-        info.mStartAppInfo.startTime /= mResultList.size();
-        ResultInfo resultInfo = new ResultInfo(mApkInfo, info);
-        LogUtil.logI(TAG, "handlerResult: %s", resultInfo);
-        return resultInfo;
     }
-
-    private MaybeEmitter<Boolean> mDbEmitter;
-
-    private Maybe<Boolean> storeResult(final ResultInfo resultInfo) {
-        return Maybe.create(new MaybeOnSubscribe<Boolean>() {
-            @Override
-            public void subscribe(MaybeEmitter<Boolean> e) throws Exception {
-                mDbEmitter = e;
-                insertResult(resultInfo);
-            }
-        }).doFinally(new Action() {
-            @Override
-            public void run() throws Exception {
-                mDbEmitter = null;
-            }
-        }).subscribeOn(Schedulers.io());
-    }
-
-    private void insertResult(final ResultInfo info) {
-        InsertResultTask task = new InsertResultTask(info, new ICallback<Integer>() {
-            @Override
-            public void onFailed(String msg) {
-                LogUtil.logI(TAG, "mInsertCallback onFailed: %s", msg);
-                mView.updateStepView(String.format(stepTxt, "存储数据库失败"));
-                Utils.safeEmitterError(mDbEmitter, new Exception("存储数据库失败"));
-            }
-
-            @Override
-            public void onSuccess(Integer data) {
-                LogUtil.logI(TAG, "mInsertCallback onSuccess: %s", data);
-                mView.updateStepView(String.format(stepTxt, "存储数据库成功"));
-                //更新版本号
-                mCurVersion = Utils.safeParseLong(info.mApkInfo.version);
-                CommonPref.INSTANCE.putLong(Constant.MONITOR_VERSION, mCurVersion);
-                LogUtil.logI(TAG, "update MONITOR_VERSION : %s", mCurVersion);
-
-                Utils.safeEmitterSuccess(mDbEmitter, true);
-            }
-        });
-        MonitorTaskInstance.getInstance().executeRunnable(task);
-    }
-
 
     private MaybeEmitter<Boolean> mMailEmitter;
 
@@ -312,56 +278,45 @@ public class StartupPresenter {
 
     private void sendMail() {
         long timestamp = CommonPref.INSTANCE.getLong(Constant.MAIL_TIMESTAMP);
-        String date = CommonPref.INSTANCE.getString(Constant.MAIL_DATE);
-        //获取当前时间
-        Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH) + 1; //0开始算
-        int day = calendar.get(Calendar.DATE);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        final String today = year + "-" + month + "-" + day;
-        LogUtil.logI(TAG, "sendMail timestamp: %s date: %s today: %s  hour: %s", timestamp, date, today, hour);
-        if (!today.equals(date) && hour > Constant.SEND_MAIL_TIME) {
-            HashMap<String, SearchResultTask.SearchInfo> hashMap = new HashMap<>();
-            SearchResultTask.SearchInfo searchInfo = new SearchResultTask.SearchInfo(SearchResultTask.GT, timestamp);
-            hashMap.put("timestamp", searchInfo);
-            SearchResultTask task = new SearchResultTask(hashMap, new ICallback<List<MonitorInfo>>() {
-                @Override
-                public void onFailed(String msg) {
-                    LogUtil.logI(TAG, "sendMail search failed : %s", msg);
-                }
-
-                @Override
-                public void onSuccess(List<MonitorInfo> data) {
-                    LogUtil.logI(TAG, "sendMail search result size : %s", data.size());
-                    //开始发送邮件
-                    String mailContent = TableUtil.createMailTableText(data);
-                    String title = "Hago " + today + " 自动化测试数据";
-                    final MailInfo mailInfo = new MailInfo();
-                    mailInfo.setUserName(Constant.USER); // 你的邮箱地址
-                    mailInfo.setPassword(Constant.PWD);// 您的邮箱密码
-                    mailInfo.setToAddress(Constant.TO_ADDRESS); // 发到哪个邮件去
-                    mailInfo.setSubject(title); // 邮件主题
-                    mailInfo.setContent(mailContent); // 邮件文本
-                    final MailSender sms = new MailSender();
-                    MonitorTaskInstance.getInstance().executeRunnable(new Runnable() {
-                        @Override
-                        public void run() {
-                            boolean result = sms.sendTextMail(mailInfo);
-                            if (result) {
-                                CommonPref.INSTANCE.putLong(Constant.MAIL_TIMESTAMP, System.currentTimeMillis());
-                                CommonPref.INSTANCE.putString(Constant.MAIL_DATE, today);
+        DBCenter.getInstance().queryMonitorByTimestamp(timestamp)
+                .subscribe(new Consumer<List<ResultInfo>>() {
+                    @Override
+                    public void accept(List<ResultInfo> data) throws Exception {
+                        LogUtil.logI(TAG, "sendMail search result size : %s", data.size());
+                        //开始发送邮件
+                        Calendar calendar = Calendar.getInstance();
+                        int year = calendar.get(Calendar.YEAR);
+                        int month = calendar.get(Calendar.MONTH) + 1; //0开始算
+                        int day = calendar.get(Calendar.DATE);
+                        final String today = year + "-" + month + "-" + day;
+                        String mailContent = TableUtil.createMailTableText(data);
+                        String title = "Hago " + today + " 自动化测试数据";
+                        final MailInfo mailInfo = new MailInfo();
+                        mailInfo.setUserName(Constant.USER); // 你的邮箱地址
+                        mailInfo.setPassword(Constant.PWD);// 您的邮箱密码
+                        mailInfo.setToAddress(Constant.TO_ADDRESS); // 发到哪个邮件去
+                        mailInfo.setSubject(title); // 邮件主题
+                        mailInfo.setContent(mailContent); // 邮件文本
+                        final MailSender sms = new MailSender();
+                        MonitorTaskInstance.getInstance().executeRunnable(new Runnable() {
+                            @Override
+                            public void run() {
+                                boolean result = sms.sendTextMail(mailInfo);
+                                if (result) {
+                                    CommonPref.INSTANCE.putLong(Constant.MAIL_TIMESTAMP, System.currentTimeMillis());
+                                    CommonPref.INSTANCE.putString(Constant.MAIL_DATE, today);
+                                }
+                                Utils.safeEmitterSuccess(mMailEmitter, result);
                             }
-                            Utils.safeEmitterSuccess(mMailEmitter, result);
-                        }
-                    });
-                }
-            });
-            MonitorTaskInstance.getInstance().executeRunnable(task);
-        } else {
-            Utils.safeEmitterSuccess(mMailEmitter, false);
-            LogUtil.logI(TAG, "not need sendMail");
-        }
+                        });
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        LogUtil.logI(TAG, "queryMonitorByTimestamp failed : %s", throwable);
+                        Utils.safeEmitterError(mMailEmitter, throwable);
+                    }
+                });
     }
 
 

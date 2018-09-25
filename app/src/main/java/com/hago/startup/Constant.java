@@ -27,11 +27,11 @@ public class Constant {
 
     public static final String EMPTYSTR = "";
 
-    //每6分钟执行一次
-    public static final long START_MONITOR_INTERVAL = 6 * 60 * 1000;
+    //每10分钟执行一次
+    public static final long START_MONITOR_INTERVAL = 10 * 60 * 1000;
 
     //启动统计次数，第一次启动不算
-    public static final int START_COUNT = 4;
+    public static final int START_COUNT = 5;
 
     //-----------SharedPreferences key
     public static final String MAIL_TIMESTAMP = "sendMailTimestamp"; //上次发送邮件的时间戳
@@ -42,7 +42,7 @@ public class Constant {
     //-----------邮箱相关
     public final static String USER = "964123660@qq.com";
     public final static String PWD = "kihjwbrkdjjjbdhg";
-    public final static String[] TO_ADDRESS = {"huangzhilong@yy.com", "wuzhonglian@yy.com"};
+    public final static String[] TO_ADDRESS = {"huangzhilong@yy.com"/*, "wuzhonglian@yy.com"*/};
     public static final int SEND_MAIL_TIME = 5; //每天几点发送邮件
     //------------
 }

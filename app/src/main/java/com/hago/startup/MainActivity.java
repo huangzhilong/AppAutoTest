@@ -6,19 +6,14 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableString;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.hago.startup.bean.ApkInfo;
-import com.hago.startup.db.DBHelper;
+import com.hago.startup.db.DBCenter;
 import com.hago.startup.receiver.AppInstallReceiver;
 import com.hago.startup.receiver.StartAppReceiver;
-import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.Utils;
 import com.hago.startup.widget.DialogManager;
-
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, IStartupView {
 
@@ -46,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvStart.setOnClickListener(this);
         tvState.setOnClickListener(this);
         registerService();
-        DBHelper.initDB(this);
+        DBCenter.getInstance().initDB(this);
         Utils.checkFilePermission(this);
         mStartupPresenter = new StartupPresenter(this);
     }
