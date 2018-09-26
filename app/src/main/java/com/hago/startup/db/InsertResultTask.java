@@ -48,7 +48,7 @@ public class InsertResultTask extends AbsDbTask<Integer> {
             public Integer call() throws Exception {
                 int count = 0;
                 for (int i = 0; i < mMonitorInfo.size(); i++) {
-                    MonitorInfo info = mMonitorInfo.get(0);
+                    MonitorInfo info = mMonitorInfo.get(i);
                     if (info == null) {
                         continue;
                     }
