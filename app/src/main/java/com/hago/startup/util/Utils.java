@@ -24,6 +24,11 @@ import io.reactivex.MaybeEmitter;
 
 public class Utils {
 
+    /**
+     * 用于控制中止测试的链式,中止后在测试时记得设为false
+     */
+    public static volatile boolean mCancelEmitter = false;
+
     public static long safeParseLong(String str) {
         if (str == null || str.length() == 0) {
             return 0;
@@ -89,8 +94,8 @@ public class Utils {
             LogUtil.logI("Utils", "safeEmitterData emitter not available");
             return;
         }
-        if (data == null) {
-            LogUtil.logI("Utils", "safeEmitterData data is null");
+        if (mCancelEmitter) {
+            emitter.onError(new Exception("主动cancel Emitter"));
             return;
         }
         emitter.onSuccess(data);
@@ -103,7 +108,7 @@ public class Utils {
         }
         if (throwable == null) {
             LogUtil.logI("Utils", "safeEmitterError throwable is null");
-            return;
+            throwable = new Exception("未知错误");
         }
         emitter.onError(throwable);
     }

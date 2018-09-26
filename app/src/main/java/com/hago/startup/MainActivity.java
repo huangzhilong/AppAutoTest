@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.hago.startup.db.DBCenter;
 import com.hago.startup.receiver.AppInstallReceiver;
 import com.hago.startup.receiver.StartAppReceiver;
 import com.hago.startup.util.Utils;
@@ -41,7 +40,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvStart.setOnClickListener(this);
         tvState.setOnClickListener(this);
         registerService();
-        DBCenter.getInstance().initDB(this);
         Utils.checkFilePermission(this);
         mStartupPresenter = new StartupPresenter(this);
     }

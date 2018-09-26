@@ -1,6 +1,5 @@
 package com.hago.startup.db;
 
-import com.hago.startup.db.AbsDbTask;
 import com.hago.startup.db.bean.MonitorInfo;
 import com.hago.startup.db.bean.ResultInfo;
 import com.hago.startup.db.bean.VersionInfo;

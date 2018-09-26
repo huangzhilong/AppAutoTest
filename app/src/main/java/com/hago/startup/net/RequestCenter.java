@@ -22,6 +22,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.reactivex.Maybe;
+import io.reactivex.MaybeEmitter;
+import io.reactivex.MaybeOnSubscribe;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
@@ -49,6 +51,16 @@ public class RequestCenter {
      * @return
      */
     public Maybe<String> getNewestApkUrl(final ApkInfo apkInfo) {
+        //指定包测试
+        if (apkInfo.checkAvailability()) {
+            return Maybe.create(new MaybeOnSubscribe<String>() {
+                @Override
+                public void subscribe(MaybeEmitter<String> e) throws Exception {
+                    e.onSuccess(apkInfo.filePath);
+                }
+            });
+        }
+        //获取构建的最新包
         return OkHttpUtil.getInstance().execRequest(Constant.GET_BUILD_URL)
                 .map(new Function<Response, String>() {
                     @Override

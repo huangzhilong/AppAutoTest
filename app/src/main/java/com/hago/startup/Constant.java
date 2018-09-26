@@ -45,4 +45,11 @@ public class Constant {
     public final static String[] TO_ADDRESS = {"huangzhilong@yy.com"/*, "wuzhonglian@yy.com"*/};
     public static final int SEND_MAIL_TIME = 5; //每天几点发送邮件
     //------------
+
+    //----------Monitor状态相关
+    public final static int IDLE        = 1; //空闲
+    public final static int RUN_AUTO    = 2; //在执行自动化测试
+    public final static int RUN_TARGET  = 3; //在执行指定版本的测试
+    public final static int WAIT        = 4; //等待执行自动化测试，即Runnable期间
+    //-------------
 }
