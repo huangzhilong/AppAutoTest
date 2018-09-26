@@ -17,15 +17,15 @@ public class ApkInfoUtil {
      * @param url
      * @return
      */
-    public static ApkInfo getApkInfo(String url) {
-        ApkInfo apkInfo = new ApkInfo();
+    public static void getApkInfo(String url, ApkInfo apkInfo) {
         if (TextUtils.isEmpty(url)) {
-            return apkInfo;
+            return;
         }
         String[] list = url.split("/");
         if (list == null || list.length == 0) {
-            return apkInfo;
+            return;
         }
+        apkInfo.filePath = url;
         for (int i = 0; i < list.length; i++) {
             String str = list[i];
             if (TextUtils.isEmpty(str)) {
@@ -43,7 +43,6 @@ public class ApkInfoUtil {
             }
         }
         LogUtil.logI(TAG, "getApkInfo :" + apkInfo);
-        return apkInfo;
     }
 
 }

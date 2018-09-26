@@ -123,7 +123,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         unregisterReceiver(mAppInstallReceiver);
         unregisterReceiver(mStartupTimeReceiver);
-        mStartupPresenter.release();
     }
 
 

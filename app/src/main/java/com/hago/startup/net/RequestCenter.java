@@ -48,13 +48,15 @@ public class RequestCenter {
      * 获取最新构建包的地址
      * @return
      */
-    public Maybe<String> getNewestApkUrl() {
+    public Maybe<String> getNewestApkUrl(final ApkInfo apkInfo) {
         return OkHttpUtil.getInstance().execRequest(Constant.GET_BUILD_URL)
                 .map(new Function<Response, String>() {
                     @Override
                     public String apply(@NonNull Response response) throws Exception {
                         String url = getNewestUrlByResponse(response);
-                        LogUtil.logI(TAG, "getNewestApkUrl : %s", url);
+                        LogUtil.logD(TAG, "getNewestApkUrl : %s", url);
+                        //获取分支和版本号
+                        ApkInfoUtil.getApkInfo(url, apkInfo);
                         return url;
                     }
                 });
@@ -92,19 +94,16 @@ public class RequestCenter {
 
     /**
      * 下载apk
-     * @param url
      * @return
      */
-    public Maybe<ApkInfo> startDownloadApk(String url) {
-        return OkHttpUtil.getInstance().execRequest(url)
+    public Maybe<ApkInfo> startDownloadApk(final @android.support.annotation.NonNull ApkInfo apkInfo) {
+        return OkHttpUtil.getInstance().execRequest(apkInfo.filePath)
                 .subscribeOn(Schedulers.io())
                 .map(new Function<Response, ApkInfo>() {
                     @Override
                     public ApkInfo apply(Response response) throws Exception {
-                        String url = response.request().url().toString();
-                        ApkInfo apkInfo = ApkInfoUtil.getApkInfo(url);
-                        LogUtil.logI(TAG, "downloadApk apkInfo: %s", apkInfo);
                         saveApk(response, apkInfo);
+                        LogUtil.logI(TAG, "startDownloadApk success apkInfo: %s", apkInfo);
                         return apkInfo;
                     }
                 });

@@ -16,7 +16,7 @@ public class ApkInfo {
 
     public long size; //包大小
 
-    public String filePath; //下载地址
+    public String filePath; //下载地址或本地apk地址
 
     public ApkInfo() {
         branch = "";
@@ -32,6 +32,13 @@ public class ApkInfo {
                 ", size=" + size +
                 ", filePath='" + filePath + '\'' +
                 '}';
+    }
+
+    public void reset() {
+        branch = "";
+        version = "";
+        size = 0;
+        filePath = "";
     }
 
     public String getApkName() {

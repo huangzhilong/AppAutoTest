@@ -23,7 +23,7 @@ public class StartAppTimeCmd extends BaseCmd<StartCmdInfo> {
 
     @Override
     public StartCmdInfo parseResult(String data) {
-        LogUtil.logI(mTag, "parseResult data: " + data);
+        LogUtil.logD(mTag, "parseResult data: " + data);
         if (TextUtils.isEmpty(data)) {
             return null;
         }

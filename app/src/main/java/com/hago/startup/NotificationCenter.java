@@ -54,9 +54,6 @@ public enum NotificationCenter {
     //app结果获取
     private MaybeEmitter<List<StartupInfo>> mResultEmitter;
 
-    //send mail
-    private MaybeEmitter<Boolean> mMailEmitter;
-
     /**
      * 启动app
      * @return
@@ -188,7 +185,7 @@ public enum NotificationCenter {
             public void run() throws Exception {
                 mInstallEmitter = null;
             }
-        });
+        }).subscribeOn(AndroidSchedulers.mainThread());
     }
 
     /**
@@ -209,7 +206,7 @@ public enum NotificationCenter {
             public void run() throws Exception {
                 mUnInstallEmitter = null;
             }
-        });
+        }).subscribeOn(AndroidSchedulers.mainThread());
     }
 
     public void emitterInstall() {

@@ -13,8 +13,6 @@ import android.widget.TextView;
 import com.hago.startup.R;
 import com.hago.startup.bean.ApkInfo;
 import com.hago.startup.widget.chooseApk.ChooseApkView;
-
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**

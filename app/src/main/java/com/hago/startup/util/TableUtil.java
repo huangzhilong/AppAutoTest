@@ -97,7 +97,7 @@ public class TableUtil {
         for (int i = 0; i < data.size(); i++) {
             stringBuffer.append(TABLE_TR_START);
             ResultInfo info = data.get(i);
-            if (info == null || info.mVersionInfo == null || Utils.empty(info.mMonitorInfoList)) {
+            if (info == null || info == ResultInfo.RESULT_EMPTY || info.mVersionInfo == null || Utils.empty(info.mMonitorInfoList)) {
                 continue;
             }
             //版本
