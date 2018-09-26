@@ -2,6 +2,7 @@ package com.hago.startup.util;
 
 import android.text.TextUtils;
 
+import com.hago.startup.Constant;
 import com.hago.startup.bean.ApkInfo;
 
 /**
@@ -43,6 +44,23 @@ public class ApkInfoUtil {
             }
         }
         LogUtil.logI(TAG, "getApkInfo :" + apkInfo);
+    }
+
+    /**
+     * 从复杂的版本号中提取数字版本号
+     * @param version
+     * @return
+     */
+    public static String getApkVersion(String version) {
+        if (TextUtils.isEmpty(version)) {
+            return Constant.EMPTYSTR;
+        }
+        //版本号
+        String[] list = version.split("-");
+        if (list != null && list.length > 2) {
+            return list[1];
+        }
+        return Constant.EMPTYSTR;
     }
 
 }

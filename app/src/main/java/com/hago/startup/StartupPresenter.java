@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableString;
-import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.widget.Toast;
 
@@ -17,7 +16,6 @@ import com.hago.startup.db.bean.ResultInfo;
 import com.hago.startup.mail.MailInfo;
 import com.hago.startup.mail.MailSender;
 import com.hago.startup.net.RequestCenter;
-import com.hago.startup.util.ApkInfoUtil;
 import com.hago.startup.util.CommonPref;
 import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.TableUtil;
@@ -34,7 +32,6 @@ import io.reactivex.MaybeOnSubscribe;
 import io.reactivex.MaybeSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
@@ -140,7 +137,6 @@ public class StartupPresenter {
     //卸载－>下载－>安装 －> 启动app -> 结果插入数据库 —> 邮件
     /**
      * 开始自动化测试
-     *
      * @param target 是否指定了测试版本
      */
     public void startMonitor(final boolean target) {
@@ -151,7 +147,7 @@ public class StartupPresenter {
                     public boolean test(String s) throws Exception {
                         long version = Utils.safeParseLong(mApkInfo.version);
                         mView.updateApkView("测试包：" + mApkInfo.version);
-                        if (version <=0 || TextUtils.isEmpty(mApkInfo.branch) || TextUtils.isEmpty(mApkInfo.filePath)) {
+                        if (!mApkInfo.checkAvailability()) {
                             LogUtil.logI(TAG, "mAkpInfo data is error: %s", mApkInfo);
                             return false;
                         }
@@ -235,7 +231,7 @@ public class StartupPresenter {
                 });
     }
 
-    //去掉第一次启动数据，在取平均
+    //去掉第一次启动数据
     private List<StartupInfo> handlerResult(List<StartupInfo> mResultList) {
         mView.updateStepView(String.format(stepTxt, "结果处理...."));
         //去除第一次启动app数据

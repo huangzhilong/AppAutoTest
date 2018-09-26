@@ -3,6 +3,7 @@ package com.hago.startup.bean;
 import android.text.TextUtils;
 
 import com.hago.startup.Constant;
+import com.hago.startup.util.Utils;
 
 /**
  * Created by huangzhilong on 18/9/10.
@@ -53,5 +54,16 @@ public class ApkInfo {
         }
         stringBuilder.append(Constant.DOWNLOAD_SUFFIX);
         return stringBuilder.toString();
+    }
+
+    /**
+     * 判断当前apkInfo是否可用
+     * @return
+     */
+    public boolean checkAvailability() {
+        if (Utils.safeParseLong(version) <= 0 || TextUtils.isEmpty(branch) || TextUtils.isEmpty(filePath)) {
+            return false;
+        }
+        return true;
     }
 }

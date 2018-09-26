@@ -10,11 +10,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.hago.startup.Constant;
 import com.hago.startup.R;
 import com.hago.startup.bean.ApkInfo;
+import com.hago.startup.util.ApkInfoUtil;
 import com.hago.startup.util.Utils;
 import com.hago.startup.widget.DialogManager;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -110,6 +113,18 @@ public class ChooseApkView extends RelativeLayout implements View.OnClickListene
             if (Utils.empty(results)) {
                 Toast.makeText(getContext(), "选择不能为空!", Toast.LENGTH_SHORT).show();
                 return;
+            }
+            //处理选择的结果
+            Iterator<ApkInfo> iterator = results.iterator();
+            while (iterator.hasNext()) {
+                ApkInfo apkInfo = iterator.next();
+                //生成下载地址
+                apkInfo.filePath = Constant.MATCHER_LAST_BUILD_TAG + apkInfo.branch + "/" + apkInfo.version + "/" + Constant.DOWNLOAD_SUFFIX;
+                //提取真正的版本号
+                apkInfo.version = ApkInfoUtil.getApkVersion(apkInfo.version);
+                if (!apkInfo.checkAvailability()) {
+                    iterator.remove();
+                }
             }
             mListener.ok(results);
         } else if (v == tvCancel) {
