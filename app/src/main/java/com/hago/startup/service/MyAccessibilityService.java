@@ -38,9 +38,14 @@ public class MyAccessibilityService extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
         int eventType = event.getEventType();
         //LogUtil.logD(TAG, "onAccessibilityEvent eventType: " + eventType);
-        if ((eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED || eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
-                && (event.getPackageName().equals("com.android.packageinstaller") || event.getPackageName().equals("com.yy.hiyo"))) {
-            handlerInstant();
+        if ((eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED || eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)) {
+            if (event.getPackageName().equals("com.android.packageinstaller") || event.getPackageName().equals("com.yy.hiyo")) {
+                handlerInstant();
+            }
+            //特别处理htc M9安装完app后还有个确认界面
+            else if (event.getPackageName().equals("com.android.settings")) {
+                handlerOKAgain();
+            }
         }
     }
 
@@ -65,15 +70,36 @@ public class MyAccessibilityService extends AccessibilityService {
 
         for (int i = 0; i < operation.length; i++) {
             List<AccessibilityNodeInfo> nodeList = nodeInfo.findAccessibilityNodeInfosByText(operation[i]);
-            if (nodeList != null && nodeList.size() > 0) {
-                for (int j = 0; j < nodeList.size(); j++) {
-                    AccessibilityNodeInfo node = nodeList.get(j);
-                    //LogUtil.logD(TAG, "handlerInstant className " + node.getClassName() + "  " + operation[i]);
-                    if (node != null && node.isEnabled() && node.isClickable()) {
-                        //LogUtil.logI(TAG, "handlerInstant click " + operation[i]);
-                        node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    }
-                }
+            clickWidget(nodeList);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private void handlerOKAgain() {
+        AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
+        if (nodeInfo == null) {
+            return;
+        }
+        List<AccessibilityNodeInfo> apkName = nodeInfo.findAccessibilityNodeInfosByText("Hago");
+        List<AccessibilityNodeInfo> apkName1 = nodeInfo.findAccessibilityNodeInfosByText("hago");
+        if (Utils.empty(apkName) && Utils.empty(apkName1)) {
+            //避免所有app都调用
+            return;
+        }
+        List<AccessibilityNodeInfo> nodeList = nodeInfo.findAccessibilityNodeInfosByText(OK1);
+        clickWidget(nodeList);
+    }
+
+    private void clickWidget( List<AccessibilityNodeInfo> nodeList) {
+        if (Utils.empty(nodeList)) {
+            return;
+        }
+        for (int j = 0; j < nodeList.size(); j++) {
+            AccessibilityNodeInfo node = nodeList.get(j);
+            //LogUtil.logD(TAG, "handlerInstant className " + node.getClassName() + "  " + operation[i]);
+            if (node != null && node.isEnabled() && node.isClickable()) {
+                //LogUtil.logI(TAG, "handlerInstant click " + operation[i]);
+                node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
             }
         }
     }
