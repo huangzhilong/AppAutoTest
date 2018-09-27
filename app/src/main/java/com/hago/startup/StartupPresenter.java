@@ -176,6 +176,13 @@ public class StartupPresenter {
                     @Override
                     public boolean test(Integer integer) throws Exception {
                         //判断是否需要邮件
+                        boolean mail = judgeNeedMail();
+                        //更新已经测试过的版本号
+                        CommonPref.INSTANCE.putLong(Constant.MONITOR_VERSION, Utils.safeParseLong(mApkInfo.version));
+                        LogUtil.logI(TAG, "update MONITOR_VERSION version: %s", mApkInfo.version);
+                        if (!mail) {
+                            mView.updateStepView("测试完成");
+                        }
                         return judgeNeedMail();
                     }
                 }).flatMap(new Function<Integer, MaybeSource<Boolean>>() {
@@ -189,8 +196,6 @@ public class StartupPresenter {
                     @Override
                     public void accept(@NonNull Boolean results) throws Exception {
                         LogUtil.logI(TAG, "startAutoTest completed! 是否发送了邮件: %s", results);
-                        //更新已经测试过的版本号
-                        CommonPref.INSTANCE.putLong(Constant.MONITOR_VERSION, Utils.safeParseLong(mApkInfo.version));
                         mView.updateStepView("测试完成");
                     }
                 }, new Consumer<Throwable>() {
