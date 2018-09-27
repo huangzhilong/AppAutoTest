@@ -31,7 +31,7 @@ public class Constant {
     public static final long START_MONITOR_INTERVAL = 10 * 60 * 1000;
 
     //启动统计次数，第一次启动不算
-    public static final int START_COUNT = 5;
+    public static final int START_COUNT = 3;
 
     //-----------SharedPreferences key
     public static final String MAIL_TIMESTAMP = "sendMailTimestamp"; //上次发送邮件的时间戳
@@ -50,6 +50,5 @@ public class Constant {
     public final static int IDLE        = 1; //空闲
     public final static int RUN_AUTO    = 2; //在执行自动化测试
     public final static int RUN_TARGET  = 3; //在执行指定版本的测试
-    public final static int WAIT        = 4; //等待执行自动化测试，即Runnable期间
     //-------------
 }

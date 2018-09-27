@@ -25,8 +25,8 @@ public class InsertResultTask extends AbsDbTask<Integer> {
     private static final String TAG = "InsertResultTask";
     private ResultInfo mResultInfo;
 
-    public InsertResultTask(@NonNull ApkInfo apkInfo, @NonNull List<StartupInfo> startupInfoList) {
-        mResultInfo = new ResultInfo(apkInfo, startupInfoList);
+    public InsertResultTask(@NonNull ResultInfo info) {
+        mResultInfo = info;
     }
 
     @Override

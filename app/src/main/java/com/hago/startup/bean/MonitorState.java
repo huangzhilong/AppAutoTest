@@ -12,6 +12,6 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
  */
 
 @Retention(SOURCE)
-@IntDef({IDLE, RUN_AUTO, RUN_TARGET, WAIT})
+@IntDef({IDLE, RUN_AUTO, RUN_TARGET})
 public @interface MonitorState {
 }

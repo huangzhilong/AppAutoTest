@@ -31,8 +31,8 @@ public class DBCenter {
     }
 
     //插入测试结果
-    public Maybe<Integer> insertResult(ApkInfo apkInfo, List<StartupInfo> startupInfoList) {
-        InsertResultTask task = new InsertResultTask(apkInfo, startupInfoList);
+    public Maybe<Integer> insertResult(ResultInfo resultInfo) {
+        InsertResultTask task = new InsertResultTask(resultInfo);
         return DBHelper.getDBInstance().execDbTask(task);
     }
 

@@ -46,6 +46,10 @@ public class Utils {
         return collection == null || collection.size() == 0;
     }
 
+    public static int getCollectionSize(Collection collection) {
+        return collection == null ? 0 : collection.size();
+    }
+
     /**
      * 检测并提示开启文件读写权限
      * @param context

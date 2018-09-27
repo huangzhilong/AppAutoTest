@@ -13,7 +13,6 @@ import com.hago.startup.bean.ApkInfo;
 import com.hago.startup.bean.MonitorState;
 import com.hago.startup.bean.StartupInfo;
 import com.hago.startup.db.DBCenter;
-import com.hago.startup.db.bean.MonitorInfo;
 import com.hago.startup.db.bean.ResultInfo;
 import com.hago.startup.mail.MailInfo;
 import com.hago.startup.mail.MailSender;
@@ -58,6 +57,11 @@ public class StartupPresenter {
     private long mCurVersion;
     //当前测试包信息
     private ApkInfo mApkInfo = new ApkInfo();
+    //----记录最后一次测试结果
+    private List<ResultInfo> mTargetResult; //最后指定包
+    private ResultInfo mLastResultInfo; // 最后自动化结果
+    private boolean isTarget;
+    //---------
     //当前状态
     private @MonitorState int mState;
 
@@ -107,6 +111,20 @@ public class StartupPresenter {
         MonitorTaskInstance.getInstance().postToMainThread(mRunnable);
     }
 
+    //查看结果
+    public void checkResult() {
+        List<ResultInfo> list;
+        if (isTarget) {
+            list = mTargetResult;
+        } else {
+            list = new ArrayList<>(1);
+            if (mLastResultInfo != null) {
+                list.add(mLastResultInfo);
+            }
+        }
+        mView.showResultViewDialog(list, isTarget);
+    }
+
     private Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
@@ -146,11 +164,13 @@ public class StartupPresenter {
     private void startAutoTest() {
         mApkInfo.reset();
         getStartMonitor(false, mApkInfo)
-                .flatMap(new Function<List<StartupInfo>, MaybeSource<Integer>>() {
+                .flatMap(new Function<ResultInfo, MaybeSource<Integer>>() {
                     @Override
-                    public MaybeSource<Integer> apply(List<StartupInfo> resultInfo) throws Exception {
+                    public MaybeSource<Integer> apply(ResultInfo resultInfo) throws Exception {
                         mView.updateStepView("数据存储.....");
-                        return DBCenter.getInstance().insertResult(mApkInfo, resultInfo);
+                        isTarget = false;
+                        mLastResultInfo = resultInfo;
+                        return DBCenter.getInstance().insertResult(resultInfo);
                     }
                 }).filter(new Predicate<Integer>() {
                     @Override
@@ -182,46 +202,46 @@ public class StartupPresenter {
                 });
     }
 
-    private List<ResultInfo> mTargetResult;
-
     //指定包测试
     private void startTargetTest(final List<ApkInfo> list) {
         final ApkInfo apkInfo = list.get(mTargetResult.size());
         LogUtil.logI(TAG, "startTargetTest apkInfo: %s", apkInfo);
         getStartMonitor(true, list.get(mTargetResult.size()))
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<List<StartupInfo>>() {
+                .subscribe(new Consumer<ResultInfo>() {
                     @Override
-                    public void accept(List<StartupInfo> startupInfoList) throws Exception {
-                        mTargetResult.add(new ResultInfo(apkInfo, startupInfoList));
-                        if (mTargetResult.size() < list.size()) {
-                            startTargetTest(list);
-                        } else {
-                            mView.updateStepView("指定包测试完成");
-                            LogUtil.logI(TAG, "startTargetTest completed! %s", mTargetResult);
-                        }
+                    public void accept(ResultInfo resultInfo) throws Exception {
+                        mTargetResult.add(resultInfo);
+                        targetTest(list);
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         LogUtil.logI(TAG, "startTargetTest throwable! %s", throwable);
                         mTargetResult.add(new ResultInfo(apkInfo));
-                        if (mTargetResult.size() < list.size()) {
-                            startTargetTest(list);
-                        } else {
-                            mView.updateStepView("指定包测试完成");
-                        }
+                        targetTest(list);
                     }
                 });
     }
 
+    private void targetTest(List<ApkInfo> list) {
+        if (mTargetResult.size() < list.size()) {
+            startTargetTest(list);
+        } else {
+            mView.updateStepView("指定包测试完成");
+            isTarget = true;
+            LogUtil.logI(TAG, "startTargetTest completed! %s", mTargetResult);
+        }
+    }
+
+
     //去掉第一次启动数据
-    private List<StartupInfo> handlerResult(List<StartupInfo> mResultList) {
+    private ResultInfo handlerResult(ApkInfo apkInfo, List<StartupInfo> mResultList, boolean isTarget) {
         mView.updateStepView("结果处理....");
         //去除第一次启动app数据
         mResultList.remove(0);
-        LogUtil.logI(TAG, "handlerResult: %s", mResultList);
-        return mResultList;
+        ResultInfo resultInfo = new ResultInfo(apkInfo, mResultList);
+        return resultInfo;
     }
 
     private boolean judgeNeedMail() {
@@ -308,7 +328,7 @@ public class StartupPresenter {
      * @param mApkInfo 指定版本测试传入有的apkInfo，自动化传入reset的mApkInfo
      * @return
      */
-    private Maybe<List<StartupInfo>> getStartMonitor(final boolean target, final ApkInfo mApkInfo) {
+    private Maybe<ResultInfo> getStartMonitor(final boolean target, final ApkInfo mApkInfo) {
         mView.updateStepView("获取最新构建包......");
         return RequestCenter.getInstance().getNewestApkUrl(mApkInfo)
                 .filter(new Predicate<String>() {
@@ -358,11 +378,11 @@ public class StartupPresenter {
                         mView.updateStepView("启动获取app数据中.....");
                         return NotificationCenter.INSTANCE.getStartResult(Constant.START_COUNT);
                     }
-                }).map(new Function<List<StartupInfo>, List<StartupInfo>>() {
+                }).map(new Function<List<StartupInfo>, ResultInfo>() {
                     @Override
-                    public List<StartupInfo> apply(List<StartupInfo> result) throws Exception {
+                    public ResultInfo apply(List<StartupInfo> result) throws Exception {
                         mView.updateStepView("结果处理中.....");
-                        return handlerResult(result);
+                        return handlerResult(mApkInfo, result, isTarget);
                     }
                 });
     }

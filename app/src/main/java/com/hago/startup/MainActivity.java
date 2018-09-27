@@ -9,16 +9,20 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.hago.startup.db.bean.ResultInfo;
 import com.hago.startup.receiver.AppInstallReceiver;
 import com.hago.startup.receiver.StartAppReceiver;
 import com.hago.startup.util.Utils;
 import com.hago.startup.widget.DialogManager;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, IStartupView {
 
     private static final String TAG = "MainActivity";
     private Button tvTarget;
     private Button tvStart;
+    private Button btnResult;
     private TextView tvState;
     private TextView tvStep;
     private TextView tvApk;
@@ -33,9 +37,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         tvTarget = findViewById(R.id.tv_target);
         tvStart = findViewById(R.id.tv_start);
+        btnResult = findViewById(R.id.tv_result);
         tvState = findViewById(R.id.tv_state);
         tvStep = findViewById(R.id.tv_step);
         tvApk = findViewById(R.id.tv_apk);
+        btnResult.setOnClickListener(this);
         tvTarget.setOnClickListener(this);
         tvStart.setOnClickListener(this);
         tvState.setOnClickListener(this);
@@ -95,6 +101,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getDialogManager().showChooseApkVersionDialog(listener);
     }
 
+    @Override
+    public void showResultViewDialog(List<ResultInfo> resultInfoList, boolean target) {
+        getDialogManager().showResultDialog(resultInfoList, target);
+    }
+
     private DialogManager getDialogManager() {
         if (mDialogManager == null) {
             mDialogManager = new DialogManager(this);
@@ -133,6 +144,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (v == tvStart) {
             //开启自动化测试
             mStartupPresenter.timerStartMonitor();
+        } else if (v == btnResult) {
+            mStartupPresenter.checkResult();
         }
     }
 }

@@ -12,7 +12,10 @@ import android.widget.TextView;
 
 import com.hago.startup.R;
 import com.hago.startup.bean.ApkInfo;
+import com.hago.startup.db.bean.ResultInfo;
 import com.hago.startup.widget.chooseApk.ChooseApkView;
+import com.hago.startup.widget.result.ResultView;
+
 import java.util.List;
 
 /**
@@ -50,28 +53,6 @@ public class DialogManager {
             return false;
         }
         return true;
-    }
-
-    public boolean isDialogShowing() {
-        return mDialog != null && mDialog.isShowing();
-    }
-
-
-    public void dismissDialog() {
-        //注释这个判断，因为不保留活动情况下，((Activity)mContext).isDestroyed() 为true 导致不执行dismiss一个dialog
-        //而mDialog.getWindow()不为null，还是可以dismiss一个dialog的。
-//        if(!checkActivityValid())
-//            return;
-        if (mContext != null && mDialog != null && mDialog.getWindow() != null) {
-            if (mContext instanceof Activity) {
-                Activity activity = (Activity) mContext;
-                if (!activity.isFinishing()) {//如果dialog在延时比如handler。postDelay中调用,而activity.已经destory,会报异常java.lang.IllegalArgumentException: View not attached to window manager
-                    mDialog.dismiss();
-                }
-            } else {
-                mDialog.dismiss();
-            }
-        }
     }
 
     public void showOkCancleCancelBigTips(String message, String tips, final OkCancelDialogListener l) {
@@ -162,6 +143,24 @@ public class DialogManager {
                 }
             }
         });
+    }
+
+    public void showResultDialog(List<ResultInfo> resultInfoList, boolean isTarget) {
+        if (!checkActivityValid()) {
+            return;
+        }
+        if (mDialog.isShowing()) {
+            mDialog.hide();
+        }
+        mDialog = mBuilder.create();
+
+        mDialog.setCancelable(true);
+        mDialog.setCanceledOnTouchOutside(true);
+        mDialog.show();
+        Window window = mDialog.getWindow();
+        window.setContentView(R.layout.layout_result_dialog);
+        ResultView view = window.findViewById(R.id.result_view);
+        view.setResultList(resultInfoList, isTarget);
     }
 
     public interface OkCancelDialogListener {
