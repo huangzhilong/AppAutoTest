@@ -107,10 +107,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void changeStartAutoTestBtn(int visibility) {
-        if (tvStart.getVisibility() != visibility) {
-            tvStart.setVisibility(visibility);
-        }
+    public void changeStartAutoTestBtn(final int visibility) {
+        MonitorTaskInstance.getInstance().postToMainThread(new Runnable() {
+            @Override
+            public void run() {
+                if (tvStart.getVisibility() != visibility) {
+                    tvStart.setVisibility(visibility);
+                }
+            }
+        });
     }
 
     private DialogManager getDialogManager() {
