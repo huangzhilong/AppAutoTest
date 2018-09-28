@@ -16,8 +16,11 @@ import com.hago.startup.bean.StartAppInfo;
 import com.hago.startup.bean.StartCmdInfo;
 import com.hago.startup.bean.StartupInfo;
 import com.hago.startup.cmd.StartAppTimeCmd;
-import com.hago.startup.notify.RxJavaUtil;
+import com.hago.startup.db.bean.ResultInfo;
+import com.hago.startup.mail.MailInfo;
+import com.hago.startup.mail.MailSender;
 import com.hago.startup.util.LogUtil;
+import com.hago.startup.util.TableUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,6 +35,7 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by huangzhilong on 18/9/11.
@@ -57,6 +61,9 @@ public enum NotificationCenter {
 
     //app结果获取
     private MaybeEmitter<List<StartupInfo>> mResultEmitter;
+
+    //发送邮件
+    private MaybeEmitter<Boolean> mMailEmitter;
 
     /**
      * 启动app
@@ -272,5 +279,35 @@ public enum NotificationCenter {
             Intent intent = new Intent(Intent.ACTION_DELETE, uri);
             context.startActivity(intent);
         }
+    }
+
+    //发送邮件
+    public Maybe<Boolean> sendToMail(final String title, final List<ResultInfo> data) {
+        return Maybe.create(new MaybeOnSubscribe<Boolean>() {
+            @Override
+            public void subscribe(MaybeEmitter<Boolean> e) throws Exception {
+                mMailEmitter = e;
+                sendMail(title, data);
+            }
+        }).subscribeOn(Schedulers.io())
+        .timeout(20, TimeUnit.SECONDS).doFinally(new Action() {
+            @Override
+            public void run() throws Exception {
+                mMailEmitter = null;
+            }
+        });
+    }
+
+    private void sendMail(String title, List<ResultInfo> data) {
+        String mailContent = TableUtil.createMailTableText(data);
+        final MailInfo mailInfo = new MailInfo();
+        mailInfo.setUserName(Constant.USER); // 你的邮箱地址
+        mailInfo.setPassword(Constant.PWD);// 您的邮箱密码
+        mailInfo.setToAddress(Constant.TO_ADDRESS); // 发到哪个邮件去
+        mailInfo.setSubject(title); // 邮件主题
+        mailInfo.setContent(mailContent); // 邮件文本
+        MailSender sms = new MailSender();
+        boolean result = sms.sendTextMail(mailInfo);
+        RxJavaUtil.safeEmitterSuccess(mMailEmitter, result);
     }
 }

@@ -28,10 +28,10 @@ public class Constant {
     public static final String EMPTYSTR = "";
 
     //每10分钟执行一次
-    public static final long START_MONITOR_INTERVAL = 5 * 60 * 1000;
+    public static final long START_MONITOR_INTERVAL = 10 * 60 * 1000;
 
     //启动统计次数，第一次启动不算
-    public static final int START_COUNT = 3;
+    public static final int START_COUNT = 5;
 
     //-----------SharedPreferences key
     public static final String MAIL_TIMESTAMP = "sendMailTimestamp"; //上次发送邮件的时间戳

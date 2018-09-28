@@ -12,16 +12,16 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.hago.startup.Constant;
-import com.hago.startup.MonitorTaskInstance;
 import com.hago.startup.R;
 import com.hago.startup.db.bean.ResultInfo;
-import com.hago.startup.mail.MailInfo;
-import com.hago.startup.mail.MailSender;
-import com.hago.startup.util.TableUtil;
+import com.hago.startup.notify.NotificationCenter;
+import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.Utils;
 
 import java.util.List;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
 
 /**
  * Created by huangzhilong on 18/9/27.
@@ -61,27 +61,27 @@ public class ResultView extends RelativeLayout {
                     Toast.makeText(getContext(), "暂无结果!!!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                final MailInfo mailInfo = new MailInfo();
-                mailInfo.setUserName(Constant.USER); // 你的邮箱地址
-                mailInfo.setPassword(Constant.PWD);// 您的邮箱密码
-                mailInfo.setToAddress(Constant.TO_ADDRESS); // 发到哪个邮件去
-                mailInfo.setSubject("测试结果邮件"); // 邮件主题
-                String mailContent = TableUtil.createMailTableText(mResultInfoList);
-                mailInfo.setContent(mailContent); // 邮件文本
-                final MailSender sms = new MailSender();
-                MonitorTaskInstance.getInstance().executeRunnable(new Runnable() {
-                    @Override
-                    public void run() {
-                        boolean result = sms.sendTextMail(mailInfo);
-                        if (result) {
-                            isSendMail = true;
-                            tipShow("邮件发送成功");
-                        } else {
-                            isSendMail = false;
-                            tipShow("邮件发送失败");
-                        }
-                    }
-                });
+                NotificationCenter.INSTANCE.sendToMail("测试结果邮件", mResultInfoList)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Consumer<Boolean>() {
+                            @Override
+                            public void accept(Boolean aBoolean) throws Exception {
+                                if (aBoolean) {
+                                    isSendMail = true;
+                                    tipShow("邮件发送成功");
+                                } else {
+                                    isSendMail = false;
+                                    tipShow("邮件发送失败");
+                                }
+                            }
+                        }, new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                LogUtil.logI("ResultView", "send mail failed: %s", throwable);
+                                isSendMail = false;
+                                tipShow("邮件发送失败");
+                            }
+                        });
             }
         });
         LinearLayoutManager mListLinearLayoutManager = new LinearLayoutManager(context);
@@ -92,12 +92,7 @@ public class ResultView extends RelativeLayout {
     }
 
     private void tipShow(final String tip) {
-        MonitorTaskInstance.getInstance().postToMainThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getContext(), tip, Toast.LENGTH_SHORT).show();
-            }
-        });
+        Toast.makeText(getContext(), tip, Toast.LENGTH_SHORT).show();
     }
 
     //设置结果页面数据

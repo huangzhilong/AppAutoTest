@@ -15,14 +15,10 @@ import com.hago.startup.bean.MonitorState;
 import com.hago.startup.bean.StartupInfo;
 import com.hago.startup.db.DBCenter;
 import com.hago.startup.db.bean.ResultInfo;
-import com.hago.startup.mail.MailInfo;
-import com.hago.startup.mail.MailSender;
 import com.hago.startup.net.RequestCenter;
 import com.hago.startup.notify.NotificationCenter;
-import com.hago.startup.notify.RxJavaUtil;
 import com.hago.startup.util.CommonPref;
 import com.hago.startup.util.LogUtil;
-import com.hago.startup.util.TableUtil;
 import com.hago.startup.util.Utils;
 import com.hago.startup.widget.DialogManager;
 
@@ -32,16 +28,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Maybe;
-import io.reactivex.MaybeEmitter;
-import io.reactivex.MaybeOnSubscribe;
 import io.reactivex.MaybeSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by huangzhilong on 18/9/7.
@@ -181,23 +172,48 @@ public class StartupPresenter {
                         //判断是否需要邮件
                         boolean mail = judgeNeedMail();
                         //更新已经测试过的版本号
-                        CommonPref.INSTANCE.putLong(Constant.MONITOR_VERSION, Utils.safeParseLong(mApkInfo.version));
+                        mCurVersion = Utils.safeParseLong(mApkInfo.version);
+                        CommonPref.INSTANCE.putLong(Constant.MONITOR_VERSION, mCurVersion);
                         LogUtil.logI(TAG, "update MONITOR_VERSION version: %s", mApkInfo.version);
                         if (!mail) {
                             finishAutoTest("测试完成，无需发送邮件");
                         }
                         return mail;
                     }
-                }).flatMap(new Function<Integer, MaybeSource<Boolean>>() {
+                }).flatMap(new Function<Integer, MaybeSource<List<ResultInfo>>>() {
                     @Override
-                    public MaybeSource<Boolean> apply(Integer integer) throws Exception {
-                            mView.updateStepView("发送邮件.....");
-                            return sendToMail();
+                    public MaybeSource<List<ResultInfo>> apply(Integer integer) throws Exception {
+                        mView.updateStepView("获取发邮件的数据.....");
+                        long timestamp = CommonPref.INSTANCE.getLong(Constant.MAIL_TIMESTAMP);
+                        return DBCenter.getInstance().queryMonitorByTimestamp(timestamp);
+                    }
+                }).filter(new Predicate<List<ResultInfo>>() {
+                    @Override
+                    public boolean test(List<ResultInfo> resultInfoList) throws Exception {
+                        if (Utils.empty(resultInfoList)) {
+                            LogUtil.logI(TAG, "queryMonitorByTimestamp result is empty");
+                            finishAutoTest("测试完成");
+                            return false;
+                        }
+                        return true;
+                    }
+                }).flatMap(new Function<List<ResultInfo>, MaybeSource<Boolean>>() {
+                    @Override
+                    public MaybeSource<Boolean> apply(List<ResultInfo> resultInfoList) throws Exception {
+                        mView.updateStepView("发邮件.....");
+                        String today = Utils.getCurDay();
+                        String title = "Hago " + today + " 自动化测试数据";
+                        return NotificationCenter.INSTANCE.sendToMail(title, resultInfoList);
                     }
                 }).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Boolean>() {
                     @Override
-                    public void accept(@NonNull Boolean results) throws Exception {
+                    public void accept(Boolean results) throws Exception {
+                        if (results) {
+                            String today = Utils.getCurDay();
+                            CommonPref.INSTANCE.putLong(Constant.MAIL_TIMESTAMP, System.currentTimeMillis());
+                            CommonPref.INSTANCE.putString(Constant.MAIL_DATE, today);
+                        }
                         LogUtil.logI(TAG, "是否成功发送了邮件: %s", results);
                         finishAutoTest("测试完成");
                     }
@@ -279,77 +295,14 @@ public class StartupPresenter {
         String date = CommonPref.INSTANCE.getString(Constant.MAIL_DATE);
         //获取当前时间
         Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH) + 1; //0开始算
-        int day = calendar.get(Calendar.DATE);
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        final String today = year + "-" + month + "-" + day;
+        String today = Utils.getCurDay();
         LogUtil.logI(TAG, "sendMail timestamp: %s date: %s today: %s  hour: %s", timestamp, date, today, hour);
         if (!today.equals(date) && hour > Constant.SEND_MAIL_TIME) {
             return true;
         } else {
             return false;
         }
-    }
-
-    private MaybeEmitter<Boolean> mMailEmitter;
-
-    private Maybe<Boolean> sendToMail() {
-        return Maybe.create(new MaybeOnSubscribe<Boolean>() {
-            @Override
-            public void subscribe(MaybeEmitter<Boolean> e) throws Exception {
-                mMailEmitter = e;
-                sendMail();
-            }
-        }).timeout(20, TimeUnit.SECONDS).doFinally(new Action() {
-            @Override
-            public void run() throws Exception {
-                mMailEmitter = null;
-            }
-        }).subscribeOn(Schedulers.io());
-    }
-
-    private void sendMail() {
-        long timestamp = CommonPref.INSTANCE.getLong(Constant.MAIL_TIMESTAMP);
-        DBCenter.getInstance().queryMonitorByTimestamp(timestamp)
-                .subscribe(new Consumer<List<ResultInfo>>() {
-                    @Override
-                    public void accept(List<ResultInfo> data) throws Exception {
-                        LogUtil.logI(TAG, "sendMail search result size : %s", data.size());
-                        //开始发送邮件
-                        Calendar calendar = Calendar.getInstance();
-                        int year = calendar.get(Calendar.YEAR);
-                        int month = calendar.get(Calendar.MONTH) + 1; //0开始算
-                        int day = calendar.get(Calendar.DATE);
-                        final String today = year + "-" + month + "-" + day;
-                        String mailContent = TableUtil.createMailTableText(data);
-                        String title = "Hago " + today + " 自动化测试数据";
-                        final MailInfo mailInfo = new MailInfo();
-                        mailInfo.setUserName(Constant.USER); // 你的邮箱地址
-                        mailInfo.setPassword(Constant.PWD);// 您的邮箱密码
-                        mailInfo.setToAddress(Constant.TO_ADDRESS); // 发到哪个邮件去
-                        mailInfo.setSubject(title); // 邮件主题
-                        mailInfo.setContent(mailContent); // 邮件文本
-                        final MailSender sms = new MailSender();
-                        MonitorTaskInstance.getInstance().executeRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                boolean result = sms.sendTextMail(mailInfo);
-                                if (result) {
-                                    CommonPref.INSTANCE.putLong(Constant.MAIL_TIMESTAMP, System.currentTimeMillis());
-                                    CommonPref.INSTANCE.putString(Constant.MAIL_DATE, today);
-                                }
-                                RxJavaUtil.safeEmitterSuccess(mMailEmitter, result);
-                            }
-                        });
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        LogUtil.logI(TAG, "queryMonitorByTimestamp failed : %s", throwable);
-                        RxJavaUtil.safeEmitterError(mMailEmitter, throwable);
-                    }
-                });
     }
 
     /**

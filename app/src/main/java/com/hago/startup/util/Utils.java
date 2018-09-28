@@ -13,6 +13,7 @@ import com.hago.startup.Constant;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
@@ -50,6 +51,14 @@ public class Utils {
         return collection == null ? 0 : collection.size();
     }
 
+    public static String getCurDay() {
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH) + 1; //0开始算
+        int day = calendar.get(Calendar.DATE);
+        String today = year + "-" + month + "-" + day;
+        return today;
+    }
     /**
      * 检测并提示开启文件读写权限
      * @param context
