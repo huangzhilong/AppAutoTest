@@ -7,7 +7,7 @@ import android.net.Uri;
 
 import com.hago.startup.Constant;
 import com.hago.startup.util.LogUtil;
-import com.hago.startup.NotificationCenter;
+import com.hago.startup.notify.NotificationCenter;
 
 /**
  * Created by huangzhilong on 18/9/11.

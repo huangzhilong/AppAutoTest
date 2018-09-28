@@ -106,6 +106,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getDialogManager().showResultDialog(resultInfoList, target);
     }
 
+    @Override
+    public void changeStartAutoTestBtn(int visibility) {
+        if (tvStart.getVisibility() != visibility) {
+            tvStart.setVisibility(visibility);
+        }
+    }
+
     private DialogManager getDialogManager() {
         if (mDialogManager == null) {
             mDialogManager = new DialogManager(this);

@@ -2,9 +2,7 @@ package com.hago.startup.net;
 
 import android.text.TextUtils;
 
-import com.hago.startup.Constant;
-import com.hago.startup.bean.ApkInfo;
-import com.hago.startup.util.Utils;
+import com.hago.startup.notify.RxJavaUtil;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -71,7 +69,7 @@ public class OkHttpUtil {
             @Override
             public void subscribe(MaybeEmitter<Response> e) throws Exception {
                 if (TextUtils.isEmpty(url)) {
-                    Utils.safeEmitterError(e, new Exception("url is empty"));
+                    RxJavaUtil.safeEmitterError(e, new Exception("url is empty"));
                     return;
                 }
                 mEmitterMap.put(url, e);
@@ -104,13 +102,13 @@ public class OkHttpUtil {
         @Override
         public void onFailure(Call call, IOException e) {
             String url = call.request().url().toString();
-            Utils.safeEmitterError(mEmitterMap.get(url), e);
+            RxJavaUtil.safeEmitterError(mEmitterMap.get(url), e);
         }
 
         @Override
         public void onResponse(Call call, Response response) throws IOException {
             String url = call.request().url().toString();
-            Utils.safeEmitterSuccess(mEmitterMap.get(url), response);
+            RxJavaUtil.safeEmitterSuccess(mEmitterMap.get(url), response);
         }
     };
 }

@@ -93,27 +93,4 @@ public class Utils {
         return savePath;
     }
 
-    public static <T> void safeEmitterSuccess(MaybeEmitter<T> emitter, T data) {
-        if (emitter == null || emitter.isDisposed()) {
-            LogUtil.logI("Utils", "safeEmitterData emitter not available");
-            return;
-        }
-        if (mCancelEmitter) {
-            emitter.onError(new Exception("主动cancel Emitter"));
-            return;
-        }
-        emitter.onSuccess(data);
-    }
-
-    public static void safeEmitterError(MaybeEmitter emitter, Throwable throwable) {
-        if (emitter == null || emitter.isDisposed()) {
-            LogUtil.logI("Utils", "safeEmitterError emitter not available");
-            return;
-        }
-        if (throwable == null) {
-            LogUtil.logI("Utils", "safeEmitterError throwable is null");
-            throwable = new Exception("未知错误");
-        }
-        emitter.onError(throwable);
-    }
 }

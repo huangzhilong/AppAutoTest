@@ -7,6 +7,7 @@ import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.view.View;
 import android.widget.Toast;
 
 import com.hago.startup.bean.ApkInfo;
@@ -17,6 +18,8 @@ import com.hago.startup.db.bean.ResultInfo;
 import com.hago.startup.mail.MailInfo;
 import com.hago.startup.mail.MailSender;
 import com.hago.startup.net.RequestCenter;
+import com.hago.startup.notify.NotificationCenter;
+import com.hago.startup.notify.RxJavaUtil;
 import com.hago.startup.util.CommonPref;
 import com.hago.startup.util.LogUtil;
 import com.hago.startup.util.TableUtil;
@@ -40,8 +43,6 @@ import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
-import static com.hago.startup.Constant.IDLE;
-
 /**
  * Created by huangzhilong on 18/9/7.
  */
@@ -62,20 +63,23 @@ public class StartupPresenter {
     private ResultInfo mLastResultInfo; // 最后自动化结果
     private boolean isTarget;
     //---------
-    //当前状态
-    private @MonitorState int mState;
+    private int mMonitorState;
 
-    public void setState(@MonitorState int state) {
-        LogUtil.logD(TAG, "set state: %s", state);
-        mState = state;
+    public void setMonitorState(@MonitorState int monitorState) {
+        mMonitorState = monitorState;
+        if (mMonitorState == Constant.IDLE) {
+            mView.changeStartAutoTestBtn(View.VISIBLE);
+        } else {
+            mView.changeStartAutoTestBtn(View.GONE);
+        }
     }
 
     public StartupPresenter(IStartupView view) {
         mView = view;
         mContext = (Context) mView;
-        setState(IDLE);
         CommonPref.INSTANCE.init(mContext);
         DBCenter.getInstance().initDB(mContext);
+        setMonitorState(Constant.IDLE);
     }
 
     //指定包测试
@@ -84,10 +88,19 @@ public class StartupPresenter {
             mView.showOpenAccessibilityTipDialog();
             return;
         }
+        if (mMonitorState == Constant.RUN_AUTO) {
+            Toast.makeText(mContext, "正在自动化测试，请稍后再试", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (mMonitorState == Constant.RUN_TARGET) {
+            Toast.makeText(mContext, "已经进行指定包测试了!!!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        MonitorTaskInstance.getInstance().clearMainThreadMsg(mRunnable);
         mView.showChooseApkVersionDialog(new DialogManager.ChooseDialogListener() {
             @Override
             public void onCancel() {
-
+                setMonitorState(Constant.IDLE);
             }
 
             @Override
@@ -99,116 +112,9 @@ public class StartupPresenter {
         });
     }
 
-    //自动拉取包测试
-    public void timerStartMonitor() {
-        if (!accessibility) {
-            mView.showOpenAccessibilityTipDialog();
-            return;
-        }
-        mCurVersion = CommonPref.INSTANCE.getLong(Constant.MONITOR_VERSION);
-        LogUtil.logI(TAG, "get mCurVersion: %s", mCurVersion);
-        MonitorTaskInstance.getInstance().clearMainThreadMsg();
-        MonitorTaskInstance.getInstance().postToMainThread(mRunnable);
-    }
-
-    //查看结果
-    public void checkResult() {
-        List<ResultInfo> list;
-        if (isTarget) {
-            list = mTargetResult;
-        } else {
-            list = new ArrayList<>(1);
-            if (mLastResultInfo != null) {
-                list.add(mLastResultInfo);
-            }
-        }
-        mView.showResultViewDialog(list, isTarget);
-    }
-
-    private Runnable mRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (accessibility) {
-                startAutoTest();
-            } else {
-                Toast.makeText(mContext, "请开启辅助功能，不然无法自动化测试!!!", Toast.LENGTH_LONG).show();
-            }
-            MonitorTaskInstance.getInstance().postToMainThreadDelay(this, Constant.START_MONITOR_INTERVAL);
-        }
-    };
-
-    public void checkStartAccessibilityService() {
-        accessibility = Utils.isStartAccessibilityService(mContext);
-        String state = "已开启";
-        int color = Color.GREEN;
-        if (!accessibility) {
-            state = "未开启";
-            color = Color.RED;
-        }
-        state = "辅助功能状态: " + state;
-        SpannableString spannableString = new SpannableString(state);
-        ForegroundColorSpan colorSpan = new ForegroundColorSpan(color);
-        spannableString.setSpan(colorSpan, spannableString.length() - 3, spannableString.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-        mView.updateAccessibilityStateView(accessibility, spannableString);
-    }
-
-    public void openAccessibilityService() {
-        if (accessibility) {
-            return;
-        }
-        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-        mContext.startActivity(intent);
-    }
-
-    //自动化测试
-    private void startAutoTest() {
-        mApkInfo.reset();
-        getStartMonitor(false, mApkInfo)
-                .flatMap(new Function<ResultInfo, MaybeSource<Integer>>() {
-                    @Override
-                    public MaybeSource<Integer> apply(ResultInfo resultInfo) throws Exception {
-                        mView.updateStepView("数据存储.....");
-                        isTarget = false;
-                        mLastResultInfo = resultInfo;
-                        return DBCenter.getInstance().insertResult(resultInfo);
-                    }
-                }).filter(new Predicate<Integer>() {
-                    @Override
-                    public boolean test(Integer integer) throws Exception {
-                        //判断是否需要邮件
-                        boolean mail = judgeNeedMail();
-                        //更新已经测试过的版本号
-                        CommonPref.INSTANCE.putLong(Constant.MONITOR_VERSION, Utils.safeParseLong(mApkInfo.version));
-                        LogUtil.logI(TAG, "update MONITOR_VERSION version: %s", mApkInfo.version);
-                        if (!mail) {
-                            mView.updateStepView("测试完成");
-                        }
-                        return judgeNeedMail();
-                    }
-                }).flatMap(new Function<Integer, MaybeSource<Boolean>>() {
-                    @Override
-                    public MaybeSource<Boolean> apply(Integer integer) throws Exception {
-                            mView.updateStepView("发送邮件.....");
-                            return sendToMail();
-                    }
-                }).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<Boolean>() {
-                    @Override
-                    public void accept(@NonNull Boolean results) throws Exception {
-                        LogUtil.logI(TAG, "startAutoTest completed! 是否发送了邮件: %s", results);
-                        mView.updateStepView("测试完成");
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        LogUtil.logI(TAG, "startAutoTest failed throwable: " + throwable);
-                        mView.updateStepView("此次测试失败");
-                    }
-                });
-    }
-
     //指定包测试
     private void startTargetTest(final List<ApkInfo> list) {
+        setMonitorState(Constant.RUN_TARGET);
         final ApkInfo apkInfo = list.get(mTargetResult.size());
         LogUtil.logI(TAG, "startTargetTest apkInfo: %s", apkInfo);
         getStartMonitor(true, list.get(mTargetResult.size()))
@@ -236,8 +142,127 @@ public class StartupPresenter {
             mView.updateStepView("指定包测试完成");
             isTarget = true;
             LogUtil.logI(TAG, "startTargetTest completed! %s", mTargetResult);
+            setMonitorState(Constant.IDLE);
         }
     }
+
+    //自动拉取包测试
+    public void timerStartMonitor() {
+        if (!accessibility) {
+            mView.showOpenAccessibilityTipDialog();
+            return;
+        }
+        if (mMonitorState == Constant.RUN_TARGET) {
+            Toast.makeText(mContext, "正在指定包测试，请稍后再试", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        mCurVersion = CommonPref.INSTANCE.getLong(Constant.MONITOR_VERSION);
+        LogUtil.logI(TAG, "get mCurVersion: %s", mCurVersion);
+        MonitorTaskInstance.getInstance().clearMainThreadMsg(mRunnable);
+        MonitorTaskInstance.getInstance().postToMainThread(mRunnable);
+    }
+
+    //自动化测试
+    private void startAutoTest() {
+        mApkInfo.reset();
+        setMonitorState(Constant.RUN_AUTO);
+        getStartMonitor(false, mApkInfo)
+                .flatMap(new Function<ResultInfo, MaybeSource<Integer>>() {
+                    @Override
+                    public MaybeSource<Integer> apply(ResultInfo resultInfo) throws Exception {
+                        mView.updateStepView("数据存储.....");
+                        isTarget = false;
+                        mLastResultInfo = resultInfo;
+                        return DBCenter.getInstance().insertResult(resultInfo);
+                    }
+                }).filter(new Predicate<Integer>() {
+                    @Override
+                    public boolean test(Integer integer) throws Exception {
+                        //判断是否需要邮件
+                        boolean mail = judgeNeedMail();
+                        //更新已经测试过的版本号
+                        CommonPref.INSTANCE.putLong(Constant.MONITOR_VERSION, Utils.safeParseLong(mApkInfo.version));
+                        LogUtil.logI(TAG, "update MONITOR_VERSION version: %s", mApkInfo.version);
+                        if (!mail) {
+                            finishAutoTest("测试完成，无需发送邮件");
+                        }
+                        return mail;
+                    }
+                }).flatMap(new Function<Integer, MaybeSource<Boolean>>() {
+                    @Override
+                    public MaybeSource<Boolean> apply(Integer integer) throws Exception {
+                            mView.updateStepView("发送邮件.....");
+                            return sendToMail();
+                    }
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Boolean>() {
+                    @Override
+                    public void accept(@NonNull Boolean results) throws Exception {
+                        LogUtil.logI(TAG, "是否成功发送了邮件: %s", results);
+                        finishAutoTest("测试完成");
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        LogUtil.logI(TAG, "startAutoTest failed throwable: " + throwable);
+                        finishAutoTest(throwable.getMessage());
+                    }
+                });
+    }
+
+    private void finishAutoTest(String msg) {
+        LogUtil.logI(TAG, "finishAutoTest: %s", msg);
+        mView.updateStepView(msg);
+        //需要执行target
+        setMonitorState(Constant.WAIT_AUTO);
+        MonitorTaskInstance.getInstance().postToMainThreadDelay(mRunnable, Constant.START_MONITOR_INTERVAL);
+    }
+
+    private Runnable mRunnable = new Runnable() {
+        @Override
+        public void run() {
+            startAutoTest();
+        }
+    };
+
+    //查看结果
+    public void checkResult() {
+        List<ResultInfo> list;
+        if (isTarget) {
+            list = mTargetResult;
+        } else {
+            list = new ArrayList<>(1);
+            if (mLastResultInfo != null) {
+                list.add(mLastResultInfo);
+            }
+        }
+        mView.showResultViewDialog(list, isTarget);
+    }
+
+
+    public void checkStartAccessibilityService() {
+        accessibility = Utils.isStartAccessibilityService(mContext);
+        String state = "已开启";
+        int color = Color.GREEN;
+        if (!accessibility) {
+            state = "未开启";
+            color = Color.RED;
+        }
+        state = "辅助功能状态: " + state;
+        SpannableString spannableString = new SpannableString(state);
+        ForegroundColorSpan colorSpan = new ForegroundColorSpan(color);
+        spannableString.setSpan(colorSpan, spannableString.length() - 3, spannableString.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        mView.updateAccessibilityStateView(accessibility, spannableString);
+    }
+
+    public void openAccessibilityService() {
+        if (accessibility) {
+            return;
+        }
+        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+        mContext.startActivity(intent);
+    }
+
 
 
     //去掉第一次启动数据
@@ -314,7 +339,7 @@ public class StartupPresenter {
                                     CommonPref.INSTANCE.putLong(Constant.MAIL_TIMESTAMP, System.currentTimeMillis());
                                     CommonPref.INSTANCE.putString(Constant.MAIL_DATE, today);
                                 }
-                                Utils.safeEmitterSuccess(mMailEmitter, result);
+                                RxJavaUtil.safeEmitterSuccess(mMailEmitter, result);
                             }
                         });
                     }
@@ -322,7 +347,7 @@ public class StartupPresenter {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         LogUtil.logI(TAG, "queryMonitorByTimestamp failed : %s", throwable);
-                        Utils.safeEmitterError(mMailEmitter, throwable);
+                        RxJavaUtil.safeEmitterError(mMailEmitter, throwable);
                     }
                 });
     }
@@ -351,8 +376,9 @@ public class StartupPresenter {
                         }
                         boolean result = version > mCurVersion;
                         if (!result) {
-                            mView.updateStepView("最新构建版本不高于已测试版本");
-                            LogUtil.logI(TAG, "最新构建版本不高于已测试版本 version: %s  curVersion: %s", version, mCurVersion);
+                            String msg = "最新构建版本不高于已测试版本";
+                            finishAutoTest(msg);
+                            LogUtil.logI(TAG, msg + " version: %s  curVersion: %s", version, mCurVersion);
                         }
                         return result;
                     }

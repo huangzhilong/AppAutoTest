@@ -28,7 +28,7 @@ public class Constant {
     public static final String EMPTYSTR = "";
 
     //每10分钟执行一次
-    public static final long START_MONITOR_INTERVAL = 10 * 60 * 1000;
+    public static final long START_MONITOR_INTERVAL = 5 * 60 * 1000;
 
     //启动统计次数，第一次启动不算
     public static final int START_COUNT = 3;
@@ -49,6 +49,7 @@ public class Constant {
     //----------Monitor状态相关
     public final static int IDLE        = 1; //空闲
     public final static int RUN_AUTO    = 2; //在执行自动化测试
-    public final static int RUN_TARGET  = 3; //在执行指定版本的测试
+    public final static int WAIT_AUTO   = 3; //等待执行自动化测试，即runnable等待中
+    public final static int RUN_TARGET  = 4; //在执行指定版本的测试
     //-------------
 }

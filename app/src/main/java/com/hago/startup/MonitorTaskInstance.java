@@ -52,7 +52,7 @@ public class MonitorTaskInstance {
     /**
      * 清楚消息
      */
-    public void clearMainThreadMsg() {
-        mMainHandler.removeCallbacksAndMessages(null);
+    public void clearMainThreadMsg(Runnable runnable) {
+        mMainHandler.removeCallbacks(runnable);
     }
 }

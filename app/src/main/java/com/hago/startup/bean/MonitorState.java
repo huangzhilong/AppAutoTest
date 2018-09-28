@@ -2,16 +2,16 @@ package com.hago.startup.bean;
 
 import android.support.annotation.IntDef;
 
-import java.lang.annotation.Retention;
+import com.hago.startup.Constant;
 
-import static com.hago.startup.Constant.*;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
- * Created by huangzhilong on 18/9/26.
+ * Created by huangzhilong on 18/9/28.
  */
 
-@Retention(SOURCE)
-@IntDef({IDLE, RUN_AUTO, RUN_TARGET})
+@Retention(RetentionPolicy.SOURCE)
+@IntDef({Constant.IDLE, Constant.RUN_AUTO, Constant.WAIT_AUTO, Constant.RUN_TARGET})
 public @interface MonitorState {
 }

@@ -7,17 +7,14 @@ import com.hago.startup.ICallback;
 import com.hago.startup.MonitorTaskInstance;
 import com.hago.startup.db.bean.MonitorInfo;
 import com.hago.startup.db.bean.VersionInfo;
+import com.hago.startup.notify.RxJavaUtil;
 import com.hago.startup.util.LogUtil;
-import com.hago.startup.util.Utils;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Maybe;
@@ -108,12 +105,12 @@ class DBHelper extends OrmLiteSqliteOpenHelper  {
                 task.setCallback(new ICallback<T>() {
                     @Override
                     public void onFailed(String msg) {
-                        Utils.safeEmitterError(e, new Exception(msg));
+                        RxJavaUtil.safeEmitterError(e, new Exception(msg));
                     }
 
                     @Override
                     public void onSuccess(T data) {
-                        Utils.safeEmitterSuccess(e, data);
+                        RxJavaUtil.safeEmitterSuccess(e, data);
                     }
                 });
                 MonitorTaskInstance.getInstance().executeRunnable(task);

@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.hago.startup.util.LogUtil;
-import com.hago.startup.NotificationCenter;
+import com.hago.startup.notify.NotificationCenter;
 import com.hago.startup.bean.StartAppInfo;
 
 /**

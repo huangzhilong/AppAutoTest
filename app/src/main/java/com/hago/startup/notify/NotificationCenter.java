@@ -1,4 +1,4 @@
-package com.hago.startup;
+package com.hago.startup.notify;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,12 +8,16 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.v4.content.FileProvider;
 
+import com.hago.startup.BuildConfig;
+import com.hago.startup.Constant;
+import com.hago.startup.ICallback;
+import com.hago.startup.MonitorTaskInstance;
 import com.hago.startup.bean.StartAppInfo;
 import com.hago.startup.bean.StartCmdInfo;
 import com.hago.startup.bean.StartupInfo;
 import com.hago.startup.cmd.StartAppTimeCmd;
+import com.hago.startup.notify.RxJavaUtil;
 import com.hago.startup.util.LogUtil;
-import com.hago.startup.util.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -153,7 +157,7 @@ public enum NotificationCenter {
                             startApp(count);
                         } else {
                             LogUtil.logI(TAG, "startApp completed!");
-                            Utils.safeEmitterSuccess(mResultEmitter, mResult);
+                            RxJavaUtil.safeEmitterSuccess(mResultEmitter, mResult);
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -210,19 +214,19 @@ public enum NotificationCenter {
     }
 
     public void emitterInstall() {
-        Utils.safeEmitterSuccess(mInstallEmitter, true);
+        RxJavaUtil.safeEmitterSuccess(mInstallEmitter, true);
     }
 
     public void emitterStartInfo(StartAppInfo startupData) {
-        Utils.safeEmitterSuccess(mStartAppEmitter, startupData);
+        RxJavaUtil.safeEmitterSuccess(mStartAppEmitter, startupData);
     }
 
     public void emitterStartCmd(StartCmdInfo startupTime) {
-        Utils.safeEmitterSuccess(mStartCmdEmitter, startupTime);
+        RxJavaUtil.safeEmitterSuccess(mStartCmdEmitter, startupTime);
     }
 
     public void emitterUnInstall() {
-        Utils.safeEmitterSuccess(mUnInstallEmitter, true);
+        RxJavaUtil.safeEmitterSuccess(mUnInstallEmitter, true);
     }
 
     private void smartInstall(String path, Context context) {

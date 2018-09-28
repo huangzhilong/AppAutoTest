@@ -13,6 +13,7 @@
         android:layout_height="wrap_content" />
 
     <TextView
+        android:layout_marginTop="10dp"
         tools:text="版本: 3729"
         android:layout_below="@id/tv_branch"
         android:id="@+id/tv_version"

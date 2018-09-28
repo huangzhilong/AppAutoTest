@@ -24,4 +24,7 @@ public interface IStartupView {
     void showChooseApkVersionDialog(DialogManager.ChooseDialogListener listener);
 
     void showResultViewDialog(List<ResultInfo> resultInfoList, boolean target);
+
+    //控制开启了自动化测试显示
+    void changeStartAutoTestBtn(int visibility);
 }
