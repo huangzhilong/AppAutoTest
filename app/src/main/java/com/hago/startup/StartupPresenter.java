@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.Toast;
@@ -221,7 +222,7 @@ public class StartupPresenter {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         LogUtil.logI(TAG, "startAutoTest failed throwable: " + throwable);
-                        finishAutoTest(throwable.getMessage());
+                        finishAutoTest(TextUtils.isEmpty(throwable.getMessage()) ? "测试失败" : throwable.getMessage());
                     }
                 });
     }
