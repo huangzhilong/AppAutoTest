@@ -93,7 +93,7 @@ public class RequestCenter {
                 if (endIndex > index) {
                     result = body.substring(index, endIndex) + Constant.DOWNLOAD_SUFFIX;
                     //先指定测试包地址，到时去掉
-                    result = "http://repo.yypm.com/dwbuild/mobile/android/hiyo/hiyo-android_1.3.0_startup_monitor_feature/20180922-3482-rd8b11182cfbebe783ec5aa2e05b7f12498276866/hiyo.apk";
+                    //result = "http://repo.yypm.com/dwbuild/mobile/android/hiyo/hiyo-android_1.3.0_startup_monitor_feature/20180922-3482-rd8b11182cfbebe783ec5aa2e05b7f12498276866/hiyo.apk";
                     return result;
                 }
             }

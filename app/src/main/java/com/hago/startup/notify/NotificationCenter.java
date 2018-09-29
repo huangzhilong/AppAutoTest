@@ -171,9 +171,7 @@ public enum NotificationCenter {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         LogUtil.logI(TAG, "startApp size: %s  throwable: %s", mResult.size(), throwable);
-                        if (mResult.size() < count) {
-                            startApp(count);
-                        }
+                        RxJavaUtil.safeEmitterError(mResultEmitter, throwable);
                     }
                 });
     }
