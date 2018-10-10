@@ -40,8 +40,6 @@ public class Constant {
     //-------------------------
 
     //-----------邮箱相关
-    public final static String USER = "964123660@qq.com";
-    public final static String PWD = "kihjwbrkdjjjbdhg";
     public final static String[] TO_ADDRESS = {"huangzhilong@yy.com"/*, "wuzhonglian@yy.com"*/};
     public static final int SEND_MAIL_TIME = 5; //每天几点发送邮件
     //------------

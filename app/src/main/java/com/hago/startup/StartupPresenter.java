@@ -204,7 +204,7 @@ public class StartupPresenter {
                         mView.updateStepView("发邮件.....");
                         String today = Utils.getCurDay();
                         String title = "Hago " + today + " 自动化测试数据";
-                        return NotificationCenter.INSTANCE.sendToMail(title, resultInfoList);
+                        return NotificationCenter.INSTANCE.sendToMail(title, mContext.getString(R.string.mail_user), mContext.getString(R.string.mail_code), resultInfoList);
                     }
                 }).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Boolean>() {

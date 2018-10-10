@@ -9,6 +9,8 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        resValue "string", "mail_user", "${mail_user}"
+        resValue "string", "mail_code", "${mail_code}"
     }
     buildTypes {
         release {

@@ -61,7 +61,7 @@ public class ResultView extends RelativeLayout {
                     Toast.makeText(getContext(), "暂无结果!!!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                NotificationCenter.INSTANCE.sendToMail("测试结果邮件", mResultInfoList)
+                NotificationCenter.INSTANCE.sendToMail("测试结果邮件", getContext().getString(R.string.mail_user), getContext().getString(R.string.mail_code), mResultInfoList)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Consumer<Boolean>() {
                             @Override

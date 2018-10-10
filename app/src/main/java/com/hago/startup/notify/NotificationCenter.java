@@ -280,12 +280,12 @@ public enum NotificationCenter {
     }
 
     //发送邮件
-    public Maybe<Boolean> sendToMail(final String title, final List<ResultInfo> data) {
+    public Maybe<Boolean> sendToMail(final String title, final String user, final String code, final List<ResultInfo> data) {
         return Maybe.create(new MaybeOnSubscribe<Boolean>() {
             @Override
             public void subscribe(MaybeEmitter<Boolean> e) throws Exception {
                 mMailEmitter = e;
-                sendMail(title, data);
+                sendMail(title, user, code, data);
             }
         }).subscribeOn(Schedulers.io())
         .timeout(20, TimeUnit.SECONDS).doFinally(new Action() {
@@ -296,11 +296,11 @@ public enum NotificationCenter {
         });
     }
 
-    private void sendMail(String title, List<ResultInfo> data) {
+    private void sendMail(String title, String user, String code, List<ResultInfo> data) {
         String mailContent = TableUtil.createMailTableText(data);
         final MailInfo mailInfo = new MailInfo();
-        mailInfo.setUserName(Constant.USER); // 你的邮箱地址
-        mailInfo.setPassword(Constant.PWD);// 您的邮箱密码
+        mailInfo.setUserName(user); // 你的邮箱地址
+        mailInfo.setPassword(code);// 您的邮箱密码
         mailInfo.setToAddress(Constant.TO_ADDRESS); // 发到哪个邮件去
         mailInfo.setSubject(title); // 邮件主题
         mailInfo.setContent(mailContent); // 邮件文本
