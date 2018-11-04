@@ -142,7 +142,7 @@ public enum NotificationCenter {
                 mResult = new ArrayList<>(count);
                 startApp(count);
             }
-        }).timeout(30 * count, TimeUnit.SECONDS).doFinally(new Action() {
+        }).timeout(60 * count, TimeUnit.SECONDS).doFinally(new Action() {
             @Override
             public void run() throws Exception {
                 mResultEmitter = null;
@@ -153,7 +153,7 @@ public enum NotificationCenter {
     private List<StartupInfo> mResult;
 
     private void startApp(final int count) {
-        getAppInfo().delay(2, TimeUnit.SECONDS)
+        getAppInfo().delay(12, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<StartupInfo>() {
                     @Override
